@@ -1,7 +1,3 @@
-yarn install
-
-NODE_ENV=production yarn build
-
-ls -al
+echo "Running action..."
 
 node /action/index.js
