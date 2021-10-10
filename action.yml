@@ -1,0 +1,42 @@
+name: "dimaslz Deploy"
+description: "Automate deploying websites in server with docker"
+author: "Dimas López aka. dimaslz"
+inputs:
+  server_ip:
+    required: true
+    description: "example: 12.34.56.78"
+
+  user:
+    required: true
+    description: "example: root"
+
+  ssh_private_key:
+    required: true
+    description: "shh private key from your application secrets, to connect to the server"
+
+  app_host:
+    required: true
+    description: "application host, as for example: your-domain.com. Will create a config to serve the application in: ${app_name}.your-domain.com"
+
+  app_name:
+    required: false
+    description: "application name in kebab case format, as for example: my-app. Finally will serve the application in: https://my-app.your-domain.com. By default repo name"
+
+  source:
+    required: false
+    description: "where the application create the build. By default /dist"
+
+  dockerfile:
+    required: false
+    description: "do you want to deploy an specific Dockerfile?. Setup the source as for example: '.'"
+
+  env:
+    required: false
+    description: "Your environment vars for the app. Check demo in README.md"
+
+runs:
+  using: "docker"
+  image: "Dockerfile"
+branding:
+  icon: "upload-cloud"
+  color: "orange"
