@@ -591,7 +591,7 @@ export class Deploy {
   async getNginxConfig(root: string, server_name: string, server_url: string) {
     return nginxTpl
       .replace("%ROOT%", root)
-      .replace("%SERVER_NAME%", server_name)
+      .replace(/\%SERVER_NAME\%/g, server_name)
       .replace("%SERVER_URL%", server_url);
   }
 
