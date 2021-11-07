@@ -34,6 +34,18 @@ inputs:
     required: false
     description: "Your environment vars for the app. Check demo in README.md"
 
+  static:
+    required: false
+    description: "Boolean, by default false. Will create the environment for an static o server app"
+
+  run_command:
+    required: false
+    description: "For static sites, will is not needed command, for server apps, by default will use `yarn start`, but you can specify the command to run your application for any stack"
+
+  wildcard_ssl:
+    required: false
+    description: ""
+
 runs:
   using: "docker"
   image: "Dockerfile"
