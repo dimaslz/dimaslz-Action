@@ -1,8 +1,10 @@
-export const nginx_static_dockerfile = `FROM node:14.15.5-alpine3.10 as builder
+export const nginx_static_dockerfile = `FROM node:16.13-alpine as builder
 
 WORKDIR /app
 
 COPY . .
+
+RUN apk update
 
 RUN yarn install
 
@@ -18,7 +20,6 @@ CMD ["nginx", "-g", "daemon off;"]`;
 
 export const node_server_dockerfile = `FROM node:16.13-alpine
 
-# update packages
 RUN apk update
 
 WORKDIR /app
@@ -32,39 +33,55 @@ RUN yarn build
 CMD $COMMAND
 `;
 
-export const nginx_container_config = `server {
-		listen 80;
+const nginx_common_config = `server_name %SERVER_NAME%;
 
-		root %ROOT%;
-
-		server_name %SERVER_NAME%;
-
-		location / {
-				gzip on;
-				gzip_disable "msie6";
-				gzip_vary on;
-				gzip_proxied any;
-				gzip_comp_level 6;
-				gzip_buffers 16 8k;
-				gzip_http_version 1.1;
-				gzip_min_length 256;
-				gzip_types text/plain text/css application/json application/x-javascript application/javascript text/xml application/xml application/xml+rss text/javascript application/vnd.ms-fontobject application/x-font-ttf font/opentype image/svg+xml image/x-icon;
-				proxy_pass %SERVER_URL%;
-				proxy_redirect off;
-				proxy_http_version 1.1;
-				proxy_cache_bypass $http_upgrade;
-				proxy_set_header Upgrade $http_upgrade;
-				proxy_set_header Connection 'upgrade';
-				proxy_set_header Host $host;
-				proxy_set_header 'Access-Control-Allow-Origin' '*';
-				proxy_set_header X-Real-IP $remote_addr;
-				proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-				proxy_set_header 'Cache-Control' 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
-				expires off;
-		}
+location / {
+		gzip on;
+		gzip_disable "msie6";
+		gzip_vary on;
+		gzip_proxied any;
+		gzip_comp_level 6;
+		gzip_buffers 16 8k;
+		gzip_http_version 1.1;
+		gzip_min_length 256;
+		gzip_types text/plain text/css application/json application/x-javascript application/javascript text/xml application/xml application/xml+rss text/javascript application/vnd.ms-fontobject application/x-font-ttf font/opentype image/svg+xml image/x-icon;
+		proxy_pass %SERVER_URL%;
+		proxy_redirect off;
+		proxy_http_version 1.1;
+		proxy_cache_bypass $http_upgrade;
+		proxy_set_header Upgrade $http_upgrade;
+		proxy_set_header Connection 'upgrade';
+		proxy_set_header Host $host;
+		proxy_set_header 'Access-Control-Allow-Origin' '*';
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header 'Cache-Control' 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
+		expires off;
 }`;
 
 export const nginx_main_config = `server {
+		listen 80;
+		listen [::]:80;
+		listen 443 ssl;
+
+		add_header Strict-Transport-Security max-age=31536000;
+		add_header X-Content-Type-Options nosniff;
+		add_header X-Frame-Options "SAMEORIGIN";
+		#add_header Content-Security-Policy "default-src 'self';" always;
+		add_header "X-XSS-Protection" "1; mode=block";
+
+		access_log						/var/log/nginx/%SERVER_NAME%.access.log;
+		error_log             /var/log/nginx/%SERVER_NAME%.error.log;
+
+		${nginx_common_config}
+
+		location /robots.txt {
+			return 200 "User-agent: *
+				Allow: /
+			";
+		}
+}`;
+export const nginx_main_wildcard_config = `server {
   listen 80;
   server_name ~^(.*)\.%DOMAIN%$;
   set $servername $1;
@@ -73,8 +90,6 @@ export const nginx_main_config = `server {
 
 server {
 		listen 443 ssl;
-
-		server_name %SERVER_NAME%;
 
 		add_header Strict-Transport-Security max-age=31536000;
 		add_header X-Content-Type-Options nosniff;
@@ -88,29 +103,7 @@ server {
 		ssl_certificate    		/etc/letsencrypt/live/%SERVER_NAME%/fullchain.pem;
 	  ssl_certificate_key		/etc/letsencrypt/live/%SERVER_NAME%/privkey.pem;
 
-		location / {
-				gzip on;
-				gzip_disable "msie6";
-				gzip_vary on;
-				gzip_proxied any;
-				gzip_comp_level 6;
-				gzip_buffers 16 8k;
-				gzip_http_version 1.1;
-				gzip_min_length 256;
-				gzip_types text/plain text/css application/json application/x-javascript application/javascript text/xml application/xml application/xml+rss text/javascript application/vnd.ms-fontobject application/x-font-ttf font/opentype image/svg+xml image/x-icon;
-				proxy_pass %SERVER_URL%;
-				proxy_redirect off;
-				proxy_http_version 1.1;
-				proxy_cache_bypass $http_upgrade;
-				proxy_set_header Upgrade $http_upgrade;
-				proxy_set_header Connection 'upgrade';
-				proxy_set_header Host $host;
-				proxy_set_header 'Access-Control-Allow-Origin' '*';
-				proxy_set_header X-Real-IP $remote_addr;
-				proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-				proxy_set_header 'Cache-Control' 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
-				expires off;
-		}
+		${nginx_common_config}
 
 		location /robots.txt {
 			return 200 "User-agent: *

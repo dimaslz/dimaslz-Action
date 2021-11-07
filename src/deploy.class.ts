@@ -4,8 +4,8 @@ import fs from "fs";
 import {
   nginx_static_dockerfile,
   node_server_dockerfile,
-  nginx_container_config,
   nginx_main_config,
+  nginx_main_wildcard_config,
 } from "./assets";
 
 const { GITHUB_WORKSPACE, INPUT_DOCKERFILE, INPUT_ENV } = process.env;
@@ -605,6 +605,13 @@ export class Deploy {
   }
 
   async getNginxConfig(root: string, server_name: string, server_url: string) {
+    if (Deploy.ARGS.wildcard_ssl) {
+      nginx_main_wildcard_config
+        .replace(/\%DOMAIN\%/g, Deploy.ARGS.app_host)
+        .replace(/\%SERVER_NAME\%/g, server_name)
+        .replace("%SERVER_URL%", server_url);
+    }
+
     return nginx_main_config
       .replace(/\%SERVER_NAME\%/g, server_name)
       .replace("%SERVER_URL%", server_url);

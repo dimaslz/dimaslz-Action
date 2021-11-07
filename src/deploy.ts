@@ -18,7 +18,7 @@ export const deploy = async (actionArgs: any) => {
     app_name,
     app_host,
   } = actionArgs;
-  console.log("username", username);
+
   await ssh.connect({
     host,
     username,
