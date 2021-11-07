@@ -14,7 +14,7 @@ export const deploy = async (actionArgs: any) => {
   const {
     server_ip: host,
     user: username,
-    privateKey: ssh_private_key,
+    ssh_private_key: privateKey,
     app_name,
     app_host,
   } = actionArgs;
@@ -22,7 +22,7 @@ export const deploy = async (actionArgs: any) => {
   await ssh.connect({
     host,
     username,
-    privateKey: ssh_private_key,
+    privateKey,
   });
 
   core.info("🚀 Deploy: connecting by SSH");
