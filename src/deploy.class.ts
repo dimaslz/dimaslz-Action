@@ -1,17 +1,24 @@
 import * as core from "@actions/core";
 import fs from "fs";
 
-import { dockerfile as baseDockerfile, nginx as nginxTpl } from "./assets";
+import {
+  nginx_static_dockerfile,
+  node_server_dockerfile,
+  nginx_container_config,
+  nginx_main_config,
+} from "./assets";
 
 const { GITHUB_WORKSPACE, INPUT_DOCKERFILE, INPUT_ENV } = process.env;
 
 export class Deploy {
   private static instance: Deploy;
   private static ssh: any;
+  private static ARGS: any;
 
   private constructor() {}
 
-  static create(ssh?: any): Deploy {
+  static create(ssh: any, args: any): Deploy {
+    this.ARGS = args;
     if (!Deploy.instance && ssh) {
       Deploy.ssh = ssh;
       Deploy.instance = new Deploy();
@@ -20,7 +27,6 @@ export class Deploy {
     return Deploy.instance;
   }
 
-  // getContainersIDByAppName = getContainersIDByAppName(Deploy.ssh)
   async getContainersIDByAppName(name: string): Promise<string> {
     return new Promise((resolve, reject) => {
       Deploy.ssh
@@ -141,7 +147,17 @@ export class Deploy {
     if (INPUT_DOCKERFILE) return Promise.resolve(null);
 
     core.info("Creating default Dockerfile");
-    fs.writeFileSync(`${GITHUB_WORKSPACE}/__Dockerfile`, baseDockerfile);
+    if (Deploy.ARGS.static) {
+      fs.writeFileSync(
+        `${GITHUB_WORKSPACE}/__Dockerfile`,
+        nginx_static_dockerfile
+      );
+    } else {
+      fs.writeFileSync(
+        `${GITHUB_WORKSPACE}/__Dockerfile`,
+        node_server_dockerfile
+      );
+    }
 
     return new Promise((resolve, reject) => {
       Deploy.ssh
@@ -589,8 +605,7 @@ export class Deploy {
   }
 
   async getNginxConfig(root: string, server_name: string, server_url: string) {
-    return nginxTpl
-      .replace("%ROOT%", root)
+    return nginx_main_config
       .replace(/\%SERVER_NAME\%/g, server_name)
       .replace("%SERVER_URL%", server_url);
   }

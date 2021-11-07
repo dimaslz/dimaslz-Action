@@ -6,16 +6,18 @@ const { GITHUB_WORKSPACE, GITHUB_SHA } = process.env;
 
 const ssh = new NodeSSH();
 
-export const deploy = async ({
-  server_ip,
-  user,
-  ssh_private_key,
-  ...rest
-}: any) => {
+export const deploy = async (actionArgs: any) => {
   core.info("🚀 Deploy");
 
   const TIMESTAMP = new Date().getTime();
 
+  const {
+    host: server_ip,
+    username: user,
+    privateKey: ssh_private_key,
+    app_name,
+    app_host,
+  } = actionArgs;
   await ssh.connect({
     host: server_ip,
     username: user,
@@ -23,9 +25,7 @@ export const deploy = async ({
   });
 
   core.info("🚀 Deploy: connecting by SSH");
-  const deployInstance = Deploy.create(ssh);
-
-  const { app_name, app_host } = rest;
+  const deployInstance = Deploy.create(ssh, actionArgs);
 
   const ENV = "production";
   const APP_URL = `${app_name}.${app_host}`;
