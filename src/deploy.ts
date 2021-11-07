@@ -12,8 +12,8 @@ export const deploy = async (actionArgs: any) => {
   const TIMESTAMP = new Date().getTime();
 
   const {
-    host,
-    username,
+    server_ip: host,
+    user: username,
     privateKey: ssh_private_key,
     app_name,
     app_host,
