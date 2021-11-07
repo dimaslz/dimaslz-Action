@@ -2,8 +2,6 @@ import * as core from "@actions/core";
 
 import deploy from "./deploy";
 
-const { INPUT_APP_NAME } = process.env;
-
 async function run() {
   try {
     const args: any = {
@@ -12,7 +10,7 @@ async function run() {
       ssh_private_key: core.getInput("ssh_private_key", { required: true }),
       app_host: core.getInput("app_host", { required: true }),
 
-      app_name: core.getInput("app_name") || INPUT_APP_NAME,
+      app_name: core.getInput("app_name"),
       source: core.getInput("source") || "dist",
       dockerfile: core.getInput("dockerfile"),
       env: core.getInput("env"),

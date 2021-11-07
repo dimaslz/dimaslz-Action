@@ -12,15 +12,16 @@ export const deploy = async (actionArgs: any) => {
   const TIMESTAMP = new Date().getTime();
 
   const {
-    host: server_ip,
-    username: user,
+    host,
+    username,
     privateKey: ssh_private_key,
     app_name,
     app_host,
   } = actionArgs;
+  console.log("username", username);
   await ssh.connect({
-    host: server_ip,
-    username: user,
+    host,
+    username,
     privateKey: ssh_private_key,
   });
 
