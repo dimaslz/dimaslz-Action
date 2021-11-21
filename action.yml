@@ -42,6 +42,10 @@ inputs:
     required: false
     description: "For static sites, will is not needed command, for server apps, by default will use `yarn start`, but you can specify the command to run your application for any stack"
 
+  build_command:
+    required: false
+    description: "By defult, we will use 'yarn build' but, you can specify an specific command"
+
   wildcard_ssl:
     required: false
     description: ""

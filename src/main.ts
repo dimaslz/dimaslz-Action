@@ -16,6 +16,7 @@ async function run() {
       env: core.getInput("env"),
       static: core.getInput("static") || false,
       run_command: core.getInput("run_command") || false,
+      build_command: core.getInput("build_command") || false,
       wildcard_ssl: core.getInput("wildcard_ssl") || false,
     };
 
