@@ -1,4 +1,4 @@
-import { Octokit } from "@octokit/rest";
+import fetch from "node-fetch";
 import * as core from "@actions/core";
 import fs from "fs";
 
@@ -15,7 +15,6 @@ export class Deploy {
   private static instance: Deploy;
   private static ssh: any;
   private static ARGS: any;
-  private static github: any;
 
   private constructor() {}
 
@@ -26,14 +25,6 @@ export class Deploy {
       Deploy.instance = new Deploy();
     }
 
-    if (INPUT_REPO_TOKEN) {
-			Deploy.github = new Octokit({
-				auth: INPUT_REPO_TOKEN,
-			});
-		} else {
-			Deploy.github = new Octokit();
-		}
-
     return Deploy.instance;
   }
 
@@ -41,10 +32,15 @@ export class Deploy {
     const [owner, repo] = GITHUB_REPOSITORY?.split("/") || [];
     if (!owner || !repo) return null;
 
-    const { data } = await Deploy.github.request('GET /repos/{owner}/{repo}', {
-      owner,
-      repo
-    });
+    const headers: Headers = new Headers();
+    headers.append("Accept", "application/vnd.github.v3+json");
+    if (INPUT_REPO_TOKEN) {
+      headers.append("Authorization", `token ${INPUT_REPO_TOKEN}`);
+    }
+
+    const data = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+      headers,
+    }).then(async(r: any) => r.json());
 
     return data?.id;
   }
