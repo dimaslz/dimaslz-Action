@@ -17,6 +17,7 @@ export const deploy = async (actionArgs: any) => {
     ssh_private_key: privateKey,
     app_name,
     app_host,
+    env_name,
   } = actionArgs;
 
   await ssh.connect({
@@ -28,15 +29,32 @@ export const deploy = async (actionArgs: any) => {
   core.info("🚀 Deploy: connecting by SSH");
   const deployInstance = Deploy.create(ssh, actionArgs);
 
-  const ENV = "production";
+  const ENV = env_name;
+  const REPO_ID = await deployInstance.getRepositoryID();
   const APP_URL = `${app_name}.${app_host}`;
-  const CONTAINER_IDs = await deployInstance.getContainersIDByAppName(
-    `${app_name}.${app_host}`
-  );
 
-  const IMAGES_IDs = await deployInstance.getImagesIDByAppName(`${app_name}.${app_host}`);
-  const BASE_APP_NAME = `${APP_URL}.${TIMESTAMP}.${GITHUB_SHA}`;
-  const ENV_APP_NAME = `${APP_URL}.${TIMESTAMP}.${GITHUB_SHA}.${ENV}`;
+  let CONTAINER_IDs = "";
+  if (REPO_ID) {
+    await deployInstance.getContainersIDByAppName(
+      `${REPO_ID}.`
+    );
+  } else {
+    await deployInstance.getContainersIDByAppName(
+      `${app_name}.${app_host}`
+    );
+  }
+
+  let IMAGES_IDs = "";
+  if (REPO_ID) {
+    await deployInstance.getImagesIDByAppName(`${REPO_ID}.`);
+  } else {
+    await deployInstance.getImagesIDByAppName(`${app_name}.${app_host}`);
+  }
+
+  let ENV_APP_NAME = `${APP_URL}.${TIMESTAMP}.${GITHUB_SHA}.${ENV}`;
+  if (REPO_ID) {
+    ENV_APP_NAME = `${REPO_ID}.${ENV_APP_NAME}`;
+  }
   const APP_DIR = `/var/www/${APP_URL}/${ENV}`;
 
   const NEW_CONTAINER_NAME = `${ENV_APP_NAME}.container`;

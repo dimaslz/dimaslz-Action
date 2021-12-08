@@ -1,3 +1,4 @@
+import { Octokit } from "@octokit/rest";
 import * as core from "@actions/core";
 import fs from "fs";
 
@@ -8,12 +9,13 @@ import {
   nginx_main_wildcard_config,
 } from "./assets";
 
-const { GITHUB_WORKSPACE, INPUT_DOCKERFILE, INPUT_ENV } = process.env;
+const { GITHUB_WORKSPACE, INPUT_DOCKERFILE, INPUT_ENV, GITHUB_REPOSITORY } = process.env;
 
 export class Deploy {
   private static instance: Deploy;
   private static ssh: any;
   private static ARGS: any;
+  private static github: any;
 
   private constructor() {}
 
@@ -24,7 +26,27 @@ export class Deploy {
       Deploy.instance = new Deploy();
     }
 
+    if (args.GITHUB_TOKEN) {
+			Deploy.github = new Octokit({
+				auth: args.GITHUB_TOKEN,
+			});
+		} else {
+			Deploy.github = new Octokit();
+		}
+
     return Deploy.instance;
+  }
+
+  async getRepositoryID() {
+    const [owner, repo] = GITHUB_REPOSITORY?.split("/") || [];
+    if (!owner || !repo) return null;
+
+    const { data } = await Deploy.github.request('GET /repos/{owner}/{repo}', {
+      owner,
+      repo
+    });
+
+    return data?.id;
   }
 
   async getContainersIDByAppName(name: string): Promise<string> {
