@@ -1,4 +1,4 @@
-import fetch, { Headers } from "node-fetch";
+import fetch from "node-fetch";
 import * as core from "@actions/core";
 import fs from "fs";
 
@@ -32,10 +32,11 @@ export class Deploy {
     const [owner, repo] = GITHUB_REPOSITORY?.split("/") || [];
     if (!owner || !repo) return null;
 
-    const headers: Headers = new Headers();
-    headers.append("Accept", "application/vnd.github.v3+json");
+    const headers: any = {
+      "Accept": "application/vnd.github.v3+json",
+    };
     if (INPUT_REPO_TOKEN) {
-      headers.append("Authorization", `token ${INPUT_REPO_TOKEN}`);
+      headers["Authorization"] = `token ${INPUT_REPO_TOKEN}`;
     }
 
     const data = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
