@@ -50,6 +50,14 @@ inputs:
     required: false
     description: ""
 
+  env_name:
+    required: false
+    description: ""
+
+  repo_token:
+    required: false
+    description: ""
+
 runs:
   using: "docker"
   image: "Dockerfile"
