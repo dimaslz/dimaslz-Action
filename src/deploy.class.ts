@@ -1,4 +1,4 @@
-import fetch from "node-fetch";
+import fetch, { Headers } from "node-fetch";
 import * as core from "@actions/core";
 import fs from "fs";
 
