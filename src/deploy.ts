@@ -33,6 +33,7 @@ export const deploy = async (actionArgs: any) => {
   const REPO_ID = await deployInstance.getRepositoryID();
   const APP_URL = `${app_name}.${app_host}`;
 
+  core.info(`🚀 Deploy: REPO_ID ${REPO_ID}`);
   let CONTAINER_IDs = "";
   if (REPO_ID) {
     await deployInstance.getContainersIDByAppName(

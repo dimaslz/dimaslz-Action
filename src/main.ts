@@ -19,6 +19,7 @@ async function run() {
       run_command: core.getInput("run_command") || false,
       build_command: core.getInput("build_command") || false,
       wildcard_ssl: core.getInput("wildcard_ssl") || false,
+      repo_token: core.getInput("repo_token") || null,
     };
 
     await deploy(args);

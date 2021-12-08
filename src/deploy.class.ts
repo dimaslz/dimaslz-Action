@@ -9,7 +9,7 @@ import {
   nginx_main_wildcard_config,
 } from "./assets";
 
-const { GITHUB_WORKSPACE, INPUT_DOCKERFILE, INPUT_ENV, GITHUB_REPOSITORY } = process.env;
+const { GITHUB_WORKSPACE, INPUT_DOCKERFILE, INPUT_ENV, GITHUB_REPOSITORY, INPUT_REPO_TOKEN } = process.env;
 
 export class Deploy {
   private static instance: Deploy;
@@ -26,9 +26,9 @@ export class Deploy {
       Deploy.instance = new Deploy();
     }
 
-    if (args.GITHUB_TOKEN) {
+    if (INPUT_REPO_TOKEN) {
 			Deploy.github = new Octokit({
-				auth: args.GITHUB_TOKEN,
+				auth: INPUT_REPO_TOKEN,
 			});
 		} else {
 			Deploy.github = new Octokit();
