@@ -32,31 +32,31 @@ inputs:
 
   env:
     required: false
-    description: "Your environment vars for the app. Check demo in README.md"
+    description: "your environment vars for the app. Check demo in README.md"
 
   static:
     required: false
-    description: "Boolean, by default false. Will create the environment for an static o server app"
+    description: "boolean, by default false. Will create the environment for an static o server app"
 
   run_command:
     required: false
-    description: "For static sites, will is not needed command, for server apps, by default will use `yarn start`, but you can specify the command to run your application for any stack"
+    description: "for static sites, will is not needed command, for server apps, by default will use `yarn start`, but you can specify the command to run your application for any stack"
 
   build_command:
     required: false
-    description: "By defult, we will use 'yarn build' but, you can specify an specific command"
+    description: "by default, we will use 'yarn build' but, you can specify an specific command"
 
   wildcard_ssl:
     required: false
-    description: ""
+    description: "by default 'false', set to 'true' if the final url of the project is *.*.domain.tld"
 
   env_name:
     required: false
-    description: ""
+    description: "by default 'production', but you can setup the tag as you want. This will not affect to the domain."
 
   repo_token:
     required: false
-    description: ""
+    description: "by default null, but you can setup repo_token: ${{ secrets.GITHUB_TOKEN }} for private repos"
 
 runs:
   using: "docker"
