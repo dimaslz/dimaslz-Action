@@ -132,6 +132,12 @@ export class Deploy {
     });
   }
 
+
+  async deleteFiles(remote: string) {
+    const command = `rm -Rf ${remote}`;
+    await Deploy.ssh.execCommand(command);
+  }
+
   async uploadFiles(local: string, remote: string) {
     return new Promise((resolve, reject) => {
       const failed: any[] = [];
@@ -157,8 +163,12 @@ export class Deploy {
               "the directory transfer was",
               status ? "successful" : "unsuccessful"
             );
-            console.log("failed transfers", failed.join(", "));
-            console.log("successful transfers", successful.join(", "));
+
+            if (failed.length) {
+              console.log("failed transfers", failed.join(", "));
+            } else {
+              console.log("successful transfers");
+            }
 
             resolve(null);
           },
