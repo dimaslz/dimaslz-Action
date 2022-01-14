@@ -193,17 +193,15 @@ export class Deploy {
     if (INPUT_DOCKERFILE) return Promise.resolve(null);
 
     core.info("Creating default Dockerfile");
-    if (toBoolean(INPUT_STATIC)) {
-      fs.writeFileSync(
-        `${GITHUB_WORKSPACE}/__Dockerfile`,
-        nginx_static_dockerfile
-      );
-    } else {
-      fs.writeFileSync(
-        `${GITHUB_WORKSPACE}/__Dockerfile`,
-        node_server_dockerfile.replace("$COMMAND", INPUT_RUN_COMMAND)
-      );
-    }
+    const Dockerfile = toBoolean(INPUT_STATIC)
+    ? nginx_static_dockerfile
+    : node_server_dockerfile.replace("$COMMAND", INPUT_RUN_COMMAND)
+
+    core.info(`Dockerfile: ${Dockerfile}`);
+    fs.writeFileSync(
+      `${GITHUB_WORKSPACE}/__Dockerfile`,
+      Dockerfile
+    );
 
     return new Promise((resolve, reject) => {
       Deploy.ssh
