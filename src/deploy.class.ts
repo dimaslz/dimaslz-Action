@@ -16,10 +16,19 @@ const {
   GITHUB_REPOSITORY,
   INPUT_REPO_TOKEN,
   INPUT_RUN_COMMAND = 'yarn start',
-  INPUT_STATIC = false,
-  INPUT_WILDCARD_SSL = false,
+  INPUT_STATIC = "false",
+  INPUT_WILDCARD_SSL = "false",
   INPUT_APP_HOST = "",
 } = process.env;
+
+const toBoolean = (value: string | boolean) => {
+  if (typeof value === "boolean") return value;
+
+  const isTrue = value.toLowerCase() === "true";
+  const isFalse = value.toLowerCase() === "false";
+
+  return isFalse ? false : isTrue;
+}
 
 export class Deploy {
   private static instance: Deploy;
@@ -174,8 +183,7 @@ export class Deploy {
     if (INPUT_DOCKERFILE) return Promise.resolve(null);
 
     core.info("Creating default Dockerfile");
-    core.info(`[STATIC]: ${INPUT_STATIC} ${typeof INPUT_STATIC}`);
-    if (INPUT_STATIC) {
+    if (toBoolean(INPUT_STATIC)) {
       fs.writeFileSync(
         `${GITHUB_WORKSPACE}/__Dockerfile`,
         nginx_static_dockerfile
@@ -633,7 +641,7 @@ export class Deploy {
   }
 
   async getNginxConfig(root: string, server_name: string, server_url: string) {
-    if (INPUT_WILDCARD_SSL) {
+    if (toBoolean(INPUT_WILDCARD_SSL)) {
       nginx_main_wildcard_config
         .replace(/\%DOMAIN\%/g, INPUT_APP_HOST)
         .replace(/\%SERVER_NAME\%/g, server_name)
