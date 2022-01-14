@@ -56,7 +56,7 @@ inputs:
 
   repo_token:
     required: false
-    description: "by default null, but you can setup repo_token: ${{ secrets.GITHUB_TOKEN }} for private repos"
+    description: "by default null, but you can setup repo_token: $\{\{ secrets.GITHUB_TOKEN \}\} for private repos"
 
 runs:
   using: "docker"
