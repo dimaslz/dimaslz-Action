@@ -18,7 +18,6 @@ async function run() {
       static: core.getBooleanInput("static") || false,
       run_command: core.getInput("run_command") || null,
       build_command: core.getInput("build_command") || null,
-      wildcard_ssl: core.getBooleanInput("wildcard_ssl", { required: false }) || false,
       repo_token: core.getInput("repo_token") || null,
     };
 
