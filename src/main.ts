@@ -10,15 +10,15 @@ async function run() {
       ssh_private_key: core.getInput("ssh_private_key", { required: true }),
       app_host: core.getInput("app_host", { required: true }),
 
-      app_name: core.getInput("app_name"),
+      app_name: core.getInput("app_name", { required: true }),
       source: core.getInput("source") || "dist",
-      dockerfile: core.getInput("dockerfile"),
+      dockerfile: core.getInput("dockerfile") || null,
       env: core.getInput("env") || "",
       env_name: core.getInput("env_name") || "production",
-      static: core.getInput("static") || false,
-      run_command: core.getInput("run_command") || false,
-      build_command: core.getInput("build_command") || false,
-      wildcard_ssl: core.getInput("wildcard_ssl") || false,
+      static: core.getBooleanInput("static") || false,
+      run_command: core.getInput("run_command") || null,
+      build_command: core.getInput("build_command") || null,
+      wildcard_ssl: core.getBooleanInput("wildcard_ssl") || false,
       repo_token: core.getInput("repo_token") || null,
     };
 
