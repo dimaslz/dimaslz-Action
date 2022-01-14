@@ -17,17 +17,17 @@ const {
   INPUT_REPO_TOKEN,
   INPUT_RUN_COMMAND = 'yarn start',
   INPUT_STATIC = false,
+  INPUT_WILDCARD_SSL = false,
+  INPUT_APP_HOST = "",
 } = process.env;
 
 export class Deploy {
   private static instance: Deploy;
   private static ssh: any;
-  private static ARGS: any;
 
   private constructor() {}
 
-  static create(ssh: any, args: any): Deploy {
-    this.ARGS = args;
+  static create(ssh: any): Deploy {
     if (!Deploy.instance && ssh) {
       Deploy.ssh = ssh;
       Deploy.instance = new Deploy();
@@ -633,9 +633,9 @@ export class Deploy {
   }
 
   async getNginxConfig(root: string, server_name: string, server_url: string) {
-    if (Deploy.ARGS.wildcard_ssl) {
+    if (INPUT_WILDCARD_SSL) {
       nginx_main_wildcard_config
-        .replace(/\%DOMAIN\%/g, Deploy.ARGS.app_host)
+        .replace(/\%DOMAIN\%/g, INPUT_APP_HOST)
         .replace(/\%SERVER_NAME\%/g, server_name)
         .replace("%SERVER_URL%", server_url);
     }

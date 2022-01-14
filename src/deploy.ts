@@ -20,6 +20,9 @@ export const deploy = async (actionArgs: any) => {
     env_name,
   } = actionArgs;
 
+  const { INPUT_APP_NAME } = process.env;
+  core.info(`ℹ️ ${INPUT_APP_NAME}`)
+
   await ssh.connect({
     host,
     username,
@@ -27,7 +30,7 @@ export const deploy = async (actionArgs: any) => {
   });
 
   core.info("🚀 Deploy: connecting by SSH");
-  const deployInstance = Deploy.create(ssh, actionArgs);
+  const deployInstance = Deploy.create(ssh);
   const REPO_ID = await deployInstance.getRepositoryID();
   if (!REPO_ID) {
     core.error(
