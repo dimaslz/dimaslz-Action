@@ -9,7 +9,14 @@ import {
   nginx_main_wildcard_config,
 } from "./assets";
 
-const { GITHUB_WORKSPACE, INPUT_DOCKERFILE, INPUT_ENV, GITHUB_REPOSITORY, INPUT_REPO_TOKEN } = process.env;
+const {
+  GITHUB_WORKSPACE,
+  INPUT_DOCKERFILE,
+  INPUT_ENV,
+  GITHUB_REPOSITORY,
+  INPUT_REPO_TOKEN,
+  INPUT_RUN_COMMAND = 'yarn start',
+} = process.env;
 
 export class Deploy {
   private static instance: Deploy;
@@ -174,7 +181,7 @@ export class Deploy {
     } else {
       fs.writeFileSync(
         `${GITHUB_WORKSPACE}/__Dockerfile`,
-        node_server_dockerfile
+        node_server_dockerfile.replace("$COMMAND", INPUT_RUN_COMMAND)
       );
     }
 
