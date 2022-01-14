@@ -174,6 +174,7 @@ export class Deploy {
     if (INPUT_DOCKERFILE) return Promise.resolve(null);
 
     core.info("Creating default Dockerfile");
+    core.info(`[STATIC]: ${INPUT_STATIC} ${typeof INPUT_STATIC}`);
     if (INPUT_STATIC) {
       fs.writeFileSync(
         `${GITHUB_WORKSPACE}/__Dockerfile`,
