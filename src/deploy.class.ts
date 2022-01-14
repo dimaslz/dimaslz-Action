@@ -16,6 +16,7 @@ const {
   GITHUB_REPOSITORY,
   INPUT_REPO_TOKEN,
   INPUT_RUN_COMMAND = 'yarn start',
+  INPUT_STATIC = false,
 } = process.env;
 
 export class Deploy {
@@ -173,7 +174,7 @@ export class Deploy {
     if (INPUT_DOCKERFILE) return Promise.resolve(null);
 
     core.info("Creating default Dockerfile");
-    if (Deploy.ARGS.static) {
+    if (INPUT_STATIC) {
       fs.writeFileSync(
         `${GITHUB_WORKSPACE}/__Dockerfile`,
         nginx_static_dockerfile
