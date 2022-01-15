@@ -133,8 +133,8 @@ export const deploy = async (actionArgs: any) => {
     await deployInstance.removeImagesByName(IMAGES_IDs);
   }
 
-  core.info("🚀 Deploy: delete files");
-  await deployInstance.deleteFiles(APP_DIR);
+  // core.info("🚀 Deploy: delete files");
+  // await deployInstance.deleteFiles(APP_DIR);
 
   deployInstance.close();
 };
