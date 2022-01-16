@@ -283,7 +283,7 @@ export class Deploy {
       envVars = env.split("\n").map(e => `--build-arg ${e}`).join(" ");
     }
 
-    let command = `cd ${appDir} && docker build --no-cache ${envVars} -t ${imageName}`;
+    let command = `cd ${appDir} && docker build ${envVars} --no-cache -t ${imageName}`;
 
     if (INPUT_DOCKERFILE) {
       if (INPUT_DOCKERFILE === "./") {
