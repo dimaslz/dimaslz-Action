@@ -284,7 +284,7 @@ export class Deploy {
         .join(" ");
     }
 
-    let command = `cd ${appDir} && docker build --no-cache ${envVars} -t ${imageName}`;
+    let command = `cd ${appDir} && docker build --no-cache -t ${imageName} ${envVars}`;
 
     if (INPUT_DOCKERFILE) {
       if (INPUT_DOCKERFILE === "./") {
