@@ -279,8 +279,9 @@ export class Deploy {
 
     let envVars = "";
     if (INPUT_ENV) {
-      const env = fs.readFileSync(`${GITHUB_WORKSPACE}/.__env`, { encoding: "utf-8"});
-      envVars = env.split("\n").map(e => `--build-arg ${e}`).join(" ");
+      envVars = INPUT_ENV?.split(/\n/)
+        .map(e => `--build-arg ${e}`)
+        .join(" ");
     }
 
     let command = `cd ${appDir} && docker build --no-cache ${envVars} -t ${imageName}`;
@@ -626,7 +627,7 @@ export class Deploy {
       // const command = `docker run --name ${containerName} -v ${volumeName}:/app -d ${imageName}`;
       let envFileCmd = "";
       if (INPUT_ENV) {
-        envFileCmd = `--env-file ${GITHUB_WORKSPACE}/.__env`;
+        envFileCmd = `--env-file ${appDir}/.__env`;
       }
       const command = `docker run --name ${containerName} ${envFileCmd} -d ${imageName}`;
       console.log("COMMAND", command);
