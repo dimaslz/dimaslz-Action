@@ -623,6 +623,7 @@ export class Deploy {
         envFileCmd = `--env-file ${appDir}/.__env`;
       }
       const command = `docker run --name ${containerName} ${envFileCmd} -d ${imageName}`;
+      console.log("COMMAND", command);
 
       await Deploy.ssh.execCommand(command).then((result: any) => {
         if (result.stderr) {
