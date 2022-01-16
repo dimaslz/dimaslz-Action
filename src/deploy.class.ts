@@ -280,6 +280,7 @@ export class Deploy {
     let envVars = "";
     if (INPUT_ENV) {
       envVars = INPUT_ENV?.split(/\n/)
+        .filter(e => e)
         .map(e => `--build-arg ${e}`)
         .join(" ");
     }
