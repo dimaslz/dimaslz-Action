@@ -279,7 +279,7 @@ export class Deploy {
 
     let envVars = "";
     if (INPUT_ENV) {
-      const env = fs.readFileSync(`${appDir}/.__env`, { encoding: "utf-8"});
+      const env = fs.readFileSync(`${GITHUB_WORKSPACE}/.__env`, { encoding: "utf-8"});
       envVars = env.split("\n").map(e => `--build-arg ${e}`).join(" ");
     }
 
