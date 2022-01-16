@@ -277,12 +277,13 @@ export class Deploy {
   async createImage(appDir: string, imageName: string) {
     console.log(`[LOG]: Creating docker image`);
 
-    let envFileCmd = "";
+    let envVars = "";
     if (INPUT_ENV) {
-      envFileCmd = `--env-file ${appDir}/.__env`;
+      const env = fs.readFileSync(`${appDir}/.__env`, { encoding: "utf-8"});
+      envVars = env.split("\n").map(e => `--build-arg ${e}`).join(" ");
     }
 
-    let command = `cd ${appDir} && docker build --no-cache ${envFileCmd} -t ${imageName}`;
+    let command = `cd ${appDir} && docker build --no-cache ${envVars} -t ${imageName}`;
 
     if (INPUT_DOCKERFILE) {
       if (INPUT_DOCKERFILE === "./") {
