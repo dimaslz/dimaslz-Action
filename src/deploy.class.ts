@@ -238,17 +238,16 @@ export class Deploy {
       .replace("%IMAGE_NAME%", imageName)
       .replace("%CONTAINER_NAME%", containerName);
 
-    console.log("INPUT_APP_PORTS", INPUT_APP_PORTS)
-    if (INPUT_APP_PORTS) {
+    const APP_PORTS = INPUT_APP_PORTS || "8080"
+    if (APP_PORTS) {
       const [portLine] = dockerComposeConfig.match(/^.*?-\s\%PORT\%/mg) || [];
-      const PORTS = INPUT_APP_PORTS.split(',')
+      const PORTS = APP_PORTS.split(',')
         .map(e => e.trim())
         .map(e => (
           portLine.replace('%PORT%', e)
         ))
         .join('\n');
 
-      console.log("INPUT_PORTS PORTS", PORTS)
       dockerComposeConfig = dockerComposeConfig
         .replace(/^.*?-\s\%PORT\%/mg, PORTS)
     }
