@@ -119,7 +119,7 @@ services:
     container_name: %CONTAINER_NAME%
     image: %IMAGE_NAME%
     build: %DOCKERFILE_FILE_PATH%
-    ports:
+		ports:
 			- %PORT%
 		environment:
 			- %ENVIRONMENT%

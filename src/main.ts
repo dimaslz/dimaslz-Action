@@ -19,7 +19,7 @@ async function run() {
       run_command: core.getInput("run_command") || null,
       build_command: core.getInput("build_command") || null,
       repo_token: core.getInput("repo_token") || null,
-      ports: core.getInput("ports") || null,
+      ports: core.getInput("ports") || "8080",
     };
 
     await deploy(args);
