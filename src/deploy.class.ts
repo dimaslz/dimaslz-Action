@@ -274,8 +274,27 @@ export class Deploy {
         .replace("%DOCKERFILE_FILE_PATH%", `${remote}/__Dockerfile`);
     }
 
+    fs.writeFileSync(
+      `${GITHUB_WORKSPACE}/docker-compose.yml`,
+      dockerComposeConfig
+    );
 
-    return Promise.resolve(null);
+    return new Promise((resolve, reject) => {
+      Deploy.ssh
+        .putFile(`${GITHUB_WORKSPACE}/docker-compose.yml`, `${remote}/docker-compose.yml`)
+        .then(
+          () => {
+            console.log("The docker-compose config is done");
+            resolve(null);
+          },
+          (error: any) => {
+            this.close();
+            console.log("Something's wrong");
+            console.log(error);
+            reject(error);
+          }
+        );
+    });
   }
 
   async uploadDockerfile(remote: string) {
