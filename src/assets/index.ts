@@ -83,10 +83,10 @@ export const nginx_main_config = `server {
 }`;
 
 export const nginx_main_wildcard_config = `server {
-  listen 80;
-  server_name ~^(.*)\.%DOMAIN%$;
-  set $servername $1;
-  rewrite ^(.*)$ https://$servername.%DOMAIN%/$1;
+	listen 80;
+	server_name ~^(.*)\.%DOMAIN%$;
+	set $servername $1;
+	rewrite ^(.*)$ https://$servername.%DOMAIN%/$1;
 }
 
 server {
@@ -102,7 +102,7 @@ server {
 		error_log             /var/log/nginx/%SERVER_NAME%.error.log;
 
 		ssl_certificate    		/etc/letsencrypt/live/%SERVER_NAME%/fullchain.pem;
-	  ssl_certificate_key		/etc/letsencrypt/live/%SERVER_NAME%/privkey.pem;
+		ssl_certificate_key		/etc/letsencrypt/live/%SERVER_NAME%/privkey.pem;
 
 		${nginx_common_config}
 
@@ -115,10 +115,10 @@ server {
 
 export const dockerCompose = `version: '3'
 services:
-  %SERVICE_NAME%:
-    container_name: %CONTAINER_NAME%
-    image: %IMAGE_NAME%
-    build: %DOCKERFILE_FILE_PATH%
+	%SERVICE_NAME%:
+		container_name: %CONTAINER_NAME%
+		image: %IMAGE_NAME%
+		build: %DOCKERFILE_FILE_PATH%
 		ports:
 			- %PORT%
 		environment:
