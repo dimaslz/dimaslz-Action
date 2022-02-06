@@ -257,7 +257,7 @@ export class Deploy {
         const ENV_VARS = INPUT_ENV?.split(/\n/)
           .filter(e => e)
           .map((e) => (
-            environmentLine.replace('%ENVIRONMENT%', `${e}\n`)
+            environmentLine.replace('%ENVIRONMENT%', `${e}`)
           ))
           .join('\n');
 
@@ -282,7 +282,7 @@ export class Deploy {
 
     return new Promise((resolve, reject) => {
       Deploy.ssh
-        .putFile(`${GITHUB_WORKSPACE}/docker-compose.yml`, `${remote}/docker-compose.yml`)
+        .putFile(`${GITHUB_WORKSPACE}/docker-compose.yml`, `~/docker-compose-files/${appName}_docker-compose.yml`)
         .then(
           () => {
             console.log("The docker-compose config is done");
