@@ -230,6 +230,7 @@ export class Deploy {
   }
 
   async createAndUploadDockerComposeFile(remote: string, { imageName, containerName, appName }: any) {
+    console.log("`${remote}/docker-compose.yml`", `${remote}/docker-compose.yml`)
     let dockerComposeConfig = DockerComposeTpl
 
     dockerComposeConfig = dockerComposeConfig

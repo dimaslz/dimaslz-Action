@@ -80,10 +80,10 @@ export const deploy = async (actionArgs: any) => {
     appName: ENV_APP_NAME,
   });
 
-  core.info("🚀 Deploy: creating run image");
-  const NEW_IMAGE_ID = await deployInstance.buildImageByDockerCompose(`${APP_DIR}`, NEW_IMAGE_NAME);
+  // core.info("🚀 Deploy: creating run image");
+  // const NEW_IMAGE_ID = await deployInstance.buildImageByDockerCompose(`${APP_DIR}`, NEW_IMAGE_NAME);
 
-  core.info(`🚀 Deploy: IMAGE_ID > ${NEW_IMAGE_ID}`);
+  // core.info(`🚀 Deploy: IMAGE_ID > ${NEW_IMAGE_ID}`);
 
 
   // core.info("🚀 Deploy: creating image");
