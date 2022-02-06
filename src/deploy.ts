@@ -54,7 +54,7 @@ export const deploy = async (actionArgs: any) => {
   const APP_DIR = `/var/www/${APP_URL}/${ENV}`;
 
   const NEW_CONTAINER_NAME = `${ENV_APP_NAME}.container`;
-  // appname.host.timestamp.github-sha.env.image
+
   const NEW_IMAGE_NAME = `${ENV_APP_NAME}.image`;
   const NEW_VOLUME_NAME = `${APP_URL}.volume`;
 
@@ -67,71 +67,84 @@ export const deploy = async (actionArgs: any) => {
   core.info("🚀 Deploy: uploading files");
   await deployInstance.uploadFiles(`${GITHUB_WORKSPACE}`, APP_DIR);
 
-  core.info("🚀 Deploy: setting env vars");
-  await deployInstance.uploadEnvVars(`${APP_DIR}`);
+  // core.info("🚀 Deploy: setting env vars");
+  // await deployInstance.uploadEnvVars(`${APP_DIR}`);
 
   core.info("🚀 Deploy: setting docker config");
   await deployInstance.uploadDockerfile(`${APP_DIR}`);
 
-  core.info("🚀 Deploy: creating image");
-  const NEW_IMAGE_ID = await deployInstance.createImage(
-    APP_DIR,
-    NEW_IMAGE_NAME
-  );
+  core.info("🚀 Deploy: setting docker config");
+  await deployInstance.createAndUploadDockerComposeFile(`${APP_DIR}`, {
+    imageName: NEW_IMAGE_NAME,
+    containerName: NEW_CONTAINER_NAME,
+    appName: ENV_APP_NAME,
+  });
 
-  let NEW_CONTAINER_INFO: any = null;
-  if (!NEW_IMAGE_ID) {
-    core.error("🚀 Deploy: no image created");
-    deployInstance.close();
-    return;
-  }
+  core.info("🚀 Deploy: creating run image");
+  const NEW_IMAGE_ID = await deployInstance.buildImageByDockerCompose(`${APP_DIR}`, NEW_IMAGE_NAME);
 
-  const volumeExists = await deployInstance.volumeExists(NEW_VOLUME_NAME);
-  if (!volumeExists) {
-    await deployInstance.createVolume(NEW_VOLUME_NAME);
-  }
+  core.info(`🚀 Deploy: IMAGE_ID > ${NEW_IMAGE_ID}`);
 
-  core.info("🚀 Deploy: running container");
-  NEW_CONTAINER_INFO = await deployInstance.runContainer(
-    NEW_IMAGE_NAME,
-    NEW_CONTAINER_NAME,
-    NEW_VOLUME_NAME,
-    APP_DIR
-  );
 
-  if (!NEW_CONTAINER_INFO.containerID) {
-    core.error(
-      "🚀 Deploy: some error has been occurred. Container is not running"
-    );
-    deployInstance.close();
-    return;
-  }
-  let nginxConfig = "";
-  core.info("🚀 Deploy: container created");
+  // core.info("🚀 Deploy: creating image");
+  // const NEW_IMAGE_ID = await deployInstance.createImage(
+  //   APP_DIR,
+  //   NEW_IMAGE_NAME
+  // );
 
-  core.info("🚀 Deploy: setting nginx config");
-  nginxConfig = await deployInstance.getNginxConfig(
-    `${APP_DIR}/dist`,
-    `${app_name}.${app_host}`,
-    `http://${NEW_CONTAINER_INFO.containerIP}:${NEW_CONTAINER_INFO.containerPort}`
-  );
+  // let NEW_CONTAINER_INFO: any = null;
+  // if (!NEW_IMAGE_ID) {
+  //   core.error("🚀 Deploy: no image created");
+  //   deployInstance.close();
+  //   return;
+  // }
 
-  if (nginxConfig) {
-    core.info("🚀 Deploy: test and restarting NGINX");
-    await deployInstance.uploadNginxConfig(
-      nginxConfig,
-      `/etc/nginx/sites-enabled/${APP_URL}`
-    );
-    await deployInstance.restartNginx();
-  }
+  // const volumeExists = await deployInstance.volumeExists(NEW_VOLUME_NAME);
+  // if (!volumeExists) {
+  //   await deployInstance.createVolume(NEW_VOLUME_NAME);
+  // }
 
-  if (!!CONTAINER_IDs) {
-    core.info(`🚀 Deploy: Removing old containers...`);
-    await deployInstance.stopContainerByName(CONTAINER_IDs);
+  // core.info("🚀 Deploy: running container");
+  // NEW_CONTAINER_INFO = await deployInstance.runContainer(
+  //   NEW_IMAGE_NAME,
+  //   NEW_CONTAINER_NAME,
+  //   NEW_VOLUME_NAME,
+  //   APP_DIR
+  // );
 
-    core.info(`🚀 Deploy: Removing old images...`);
-    await deployInstance.removeImagesByName(IMAGES_IDs);
-  }
+  // if (!NEW_CONTAINER_INFO.containerID) {
+  //   core.error(
+  //     "🚀 Deploy: some error has been occurred. Container is not running"
+  //   );
+  //   deployInstance.close();
+  //   return;
+  // }
+  // let nginxConfig = "";
+  // core.info("🚀 Deploy: container created");
+
+  // core.info("🚀 Deploy: setting nginx config");
+  // nginxConfig = await deployInstance.getNginxConfig(
+  //   `${APP_DIR}/dist`,
+  //   `${app_name}.${app_host}`,
+  //   `http://${NEW_CONTAINER_INFO.containerIP}:${NEW_CONTAINER_INFO.containerPort}`
+  // );
+
+  // if (nginxConfig) {
+  //   core.info("🚀 Deploy: test and restarting NGINX");
+  //   await deployInstance.uploadNginxConfig(
+  //     nginxConfig,
+  //     `/etc/nginx/sites-enabled/${APP_URL}`
+  //   );
+  //   await deployInstance.restartNginx();
+  // }
+
+  // if (!!CONTAINER_IDs) {
+  //   core.info(`🚀 Deploy: Removing old containers...`);
+  //   await deployInstance.stopContainerByName(CONTAINER_IDs);
+
+  //   core.info(`🚀 Deploy: Removing old images...`);
+  //   await deployInstance.removeImagesByName(IMAGES_IDs);
+  // }
 
   // core.info("🚀 Deploy: delete files");
   // await deployInstance.deleteFiles(APP_DIR);

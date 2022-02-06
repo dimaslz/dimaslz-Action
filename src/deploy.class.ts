@@ -7,6 +7,7 @@ import {
   node_server_dockerfile,
   nginx_main_config,
   nginx_main_wildcard_config,
+  dockerCompose as DockerComposeTpl
 } from "./assets";
 
 const {
@@ -19,6 +20,7 @@ const {
   INPUT_STATIC = "false",
   INPUT_WILDCARD_SSL = "false",
   INPUT_APP_HOST = "",
+  INPUT_PORTS = "8080",
 } = process.env;
 
 const toBoolean = (value: string | boolean) => {
@@ -181,6 +183,99 @@ export class Deploy {
           }
         );
     });
+  }
+
+  async buildImageByDockerCompose(remote: string, imageName: string) {
+    let command = `docker-compose build -f `;
+    if (INPUT_DOCKERFILE) {
+      command += `${remote}/Dockerfile`
+    } else {
+      command += `${remote}/__Dockerfile`
+    }
+
+    return new Promise(async (resolve, reject) => {
+      try {
+        await Deploy.ssh.execCommand(command).then(async (result: any) => {
+          if (result.stderr) {
+            this.close();
+            reject(result.stderr);
+          }
+
+          const imageId: string = await this.getImageIDByImageName(imageName);
+          resolve(imageId);
+        });
+      } catch {
+        this.close();
+      }
+    });
+  }
+
+  async runContainerByDockerCompose(remote: string, { appName }: any) {
+    const command = `docker-compose run ${appName} `;
+
+    return new Promise(async (resolve, reject) => {
+      try {
+        await Deploy.ssh.execCommand(command).then((result: any) => {
+          if (result.stderr) {
+            this.close();
+            reject(result.stderr);
+          }
+
+          resolve(null);
+        });
+      } catch {
+        this.close();
+      }
+    });
+  }
+
+  async createAndUploadDockerComposeFile(remote: string, { imageName, containerName, appName }: any) {
+    let dockerComposeConfig = DockerComposeTpl
+
+    dockerComposeConfig = dockerComposeConfig
+      .replace("%SERVICE_NAME%", appName)
+      .replace("%IMAGE_NAME%", imageName)
+      .replace("%CONTAINER_NAME%", containerName);
+
+    if (INPUT_PORTS) {
+      const [portLine] = dockerComposeConfig.match(/^.*?-\s\%PORT\%/mg) || [];
+      const PORTS = INPUT_PORTS.split(',')
+        .map(e => e.trim())
+        .map(e => (
+          portLine.replace('%PORT%', `${e}\n`)
+        ))
+        .join('\n');
+
+      dockerComposeConfig = dockerComposeConfig
+        .replace(/^.*?-\s\%PORT\%/mg, PORTS)
+    }
+
+    if (INPUT_ENV) {
+      const [environmentLine] = dockerComposeConfig.match(/^.*?-\s\%ENVIRONMENT\%/mg) || [];
+      if (environmentLine) {
+        const ENV_VARS = INPUT_ENV?.split(/\n/)
+          .filter(e => e)
+          .map((e) => (
+            environmentLine.replace('%ENVIRONMENT%', `${e}\n`)
+          ))
+          .join('\n');
+
+        dockerComposeConfig = dockerComposeConfig
+          .replace(/^.*?-\s\%ENVIRONMENT\%/mg, ENV_VARS)
+      }
+    }
+
+
+    if (INPUT_DOCKERFILE) {
+      dockerComposeConfig = dockerComposeConfig
+        .replace("%DOCKERFILE_FILE_PATH%", `${remote}/Dockerfile`);
+    } else {
+      dockerComposeConfig = dockerComposeConfig
+        .replace("%DOCKERFILE_FILE_PATH%", `${remote}/__Dockerfile`);
+    }
+
+
+    return Promise.resolve(null);
   }
 
   async uploadDockerfile(remote: string) {

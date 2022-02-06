@@ -58,6 +58,10 @@ inputs:
     required: false
     description: "by default null, but you can setup repo_token: 'secrets.GITHUB_TOKEN'"
 
+  ports:
+    required: false
+    description: "port where is serve the application"
+
 runs:
   using: "docker"
   image: "Dockerfile"
