@@ -244,7 +244,7 @@ export class Deploy {
       const PORTS = APP_PORTS.split(',')
         .map(e => e.trim())
         .map(e => (
-          portLine.replace('%PORT%', e)
+          portLine.replace('%PORT%', `${e}:${e}`)
         ))
         .join('\n');
 
@@ -258,7 +258,7 @@ export class Deploy {
         const ENV_VARS = INPUT_ENV?.split(/\n/)
           .filter(e => e)
           .map((e) => (
-            environmentLine.replace('%ENVIRONMENT%', `${e}:${e}`)
+            environmentLine.replace('%ENVIRONMENT%', `${e}`)
           ))
           .join('\n');
 
