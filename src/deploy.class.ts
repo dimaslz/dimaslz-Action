@@ -238,6 +238,7 @@ export class Deploy {
       .replace("%IMAGE_NAME%", imageName)
       .replace("%CONTAINER_NAME%", containerName);
 
+    console.log("INPUT_PORTS", INPUT_PORTS)
     if (INPUT_PORTS) {
       const [portLine] = dockerComposeConfig.match(/^.*?-\s\%PORT\%/mg) || [];
       const PORTS = INPUT_PORTS.split(',')
@@ -247,6 +248,7 @@ export class Deploy {
         ))
         .join('\n');
 
+      console.log("INPUT_PORTS PORTS", PORTS)
       dockerComposeConfig = dockerComposeConfig
         .replace(/^.*?-\s\%PORT\%/mg, PORTS)
     }
@@ -257,7 +259,7 @@ export class Deploy {
         const ENV_VARS = INPUT_ENV?.split(/\n/)
           .filter(e => e)
           .map((e) => (
-            environmentLine.replace('%ENVIRONMENT%', e)
+            environmentLine.replace('%ENVIRONMENT%', `${e}:${e}`)
           ))
           .join('\n');
 
@@ -282,7 +284,7 @@ export class Deploy {
 
     return new Promise((resolve, reject) => {
       Deploy.ssh
-        .putFile(`${GITHUB_WORKSPACE}/docker-compose.yml`, `~/docker-compose-files/${appName}_docker-compose.yml`)
+        .putFile(`${GITHUB_WORKSPACE}/docker-compose.yml`, `docker-compose-files/${appName}_docker-compose.yml`)
         .then(
           () => {
             console.log("The docker-compose config is done");
