@@ -103,26 +103,24 @@ export class Deploy {
     });
   }
 
-  async createAppFolder(appDir: string) {
-    console.log("[LOG]: Creating app directory");
-
+  async createFolder(dir: string) {
     return new Promise((resolve, reject) => {
-      Deploy.ssh.execCommand(`mkdir -p ${appDir}`).then((result: any) => {
+      Deploy.ssh.execCommand(`mkdir -p ${dir}`).then((result: any) => {
         if (result.stderr) {
           console.log("[LOG]: result.stderr", result.stderr);
           this.close();
           reject(result.stderr);
         }
 
-        console.log("[LOG]: appDir", appDir);
-        resolve(appDir);
+        console.log("[LOG]: dir", dir);
+        resolve(dir);
       });
     });
   }
 
-  async appDirExists(appDir: string) {
+  async dirExists(dir: string) {
     return new Promise((resolve, reject) => {
-      const command = `if [ -d "${appDir}" ]; then echo "true"; else echo "false"; fi`;
+      const command = `if [ -d "${dir}" ]; then echo "true"; else echo "false"; fi`;
       Deploy.ssh.execCommand(command).then((result: any) => {
         if (result.stderr) {
           this.close();
@@ -236,7 +234,7 @@ export class Deploy {
     dockerComposeConfig = dockerComposeConfig
       .replace("%SERVICE_NAME%", appName)
       .replace("%IMAGE_NAME%", imageName)
-      .replace("%CONTAINER_NAME%", containerName);
+      .replace("%DOCKERFILE_FILE_CONTEXT%", remote);
 
     const APP_PORTS = INPUT_APP_PORTS || "80"
     if (APP_PORTS) {
@@ -270,10 +268,10 @@ export class Deploy {
 
     if (INPUT_DOCKERFILE) {
       dockerComposeConfig = dockerComposeConfig
-        .replace("%DOCKERFILE_FILE_PATH%", `${remote}/Dockerfile`);
-    } else {
-      dockerComposeConfig = dockerComposeConfig
-        .replace("%DOCKERFILE_FILE_PATH%", `${remote}/__Dockerfile`);
+        .replace("%DOCKERFILE_FILE_NAME%", `Dockerfile`);
+      } else {
+        dockerComposeConfig = dockerComposeConfig
+        .replace("%DOCKERFILE_FILE_NAME%", `__Dockerfile`);
     }
 
     fs.writeFileSync(

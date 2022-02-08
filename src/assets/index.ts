@@ -1,4 +1,4 @@
-export const nginx_static_dockerfile = `FROM node:16.13-alpine as builder
+export const nginx_static_dockerfile = `FROM node:16.14-alpine as builder
 
 WORKDIR /app
 
@@ -18,7 +18,7 @@ EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]`;
 
-export const node_server_dockerfile = `FROM node:16.13-alpine
+export const node_server_dockerfile = `FROM node:16.14-alpine
 
 RUN apk update
 
@@ -118,7 +118,9 @@ services:
 	%SERVICE_NAME%:
 		container_name: %CONTAINER_NAME%
 		image: %IMAGE_NAME%
-		build: %DOCKERFILE_FILE_PATH%
+		build:
+			- context: %DOCKERFILE_FILE_CONTEXT%
+			- dockerfile: %DOCKERFILE_FILE_NAME%
 		ports:
 			- %PORT%
 		environment:

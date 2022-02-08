@@ -51,6 +51,7 @@ export const deploy = async (actionArgs: any) => {
   const IMAGES_IDs = await deployInstance.getImagesIDByAppName(`${REPO_ID}.`);
 
   const ENV_APP_NAME = `${REPO_ID}.${APP_URL}.${TIMESTAMP}.${GITHUB_SHA}.${ENV}`;
+  const APP_ID = `${TIMESTAMP}.${GITHUB_SHA}`;
   const APP_DIR = `/var/www/${APP_URL}/${ENV}`;
 
   const NEW_CONTAINER_NAME = `${ENV_APP_NAME}.container`;
@@ -59,22 +60,28 @@ export const deploy = async (actionArgs: any) => {
   const NEW_VOLUME_NAME = `${APP_URL}.volume`;
 
   core.info("🚀 Deploy: application directory");
-  const dirExists = await deployInstance.appDirExists(APP_DIR);
+  const dirExists = await deployInstance.dirExists(APP_DIR);
   if (!dirExists) {
-    await deployInstance.createAppFolder(APP_DIR);
+    await deployInstance.createFolder(APP_DIR);
+  }
+
+  core.info("🚀 Deploy: application version directory");
+  const dirVersionExists = await deployInstance.dirExists(`${APP_DIR}/${APP_ID}`);
+  if (!dirVersionExists) {
+    await deployInstance.createFolder(`${APP_DIR}/${APP_ID}`);
   }
 
   core.info("🚀 Deploy: uploading files");
-  await deployInstance.uploadFiles(`${GITHUB_WORKSPACE}`, APP_DIR);
+  await deployInstance.uploadFiles(`${GITHUB_WORKSPACE}`, `${APP_DIR}/${APP_ID}`);
 
   // core.info("🚀 Deploy: setting env vars");
   // await deployInstance.uploadEnvVars(`${APP_DIR}`);
 
   core.info("🚀 Deploy: setting docker config");
-  await deployInstance.uploadDockerfile(`${APP_DIR}`);
+  await deployInstance.uploadDockerfile(`${APP_DIR}/${APP_ID}`);
 
   core.info("🚀 Deploy: setting docker config");
-  await deployInstance.createAndUploadDockerComposeFile(`${APP_DIR}`, {
+  await deployInstance.createAndUploadDockerComposeFile(`${APP_DIR}/${APP_ID}`, {
     imageName: NEW_IMAGE_NAME,
     containerName: NEW_CONTAINER_NAME,
     appName: ENV_APP_NAME,
