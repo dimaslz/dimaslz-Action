@@ -183,10 +183,10 @@ export class Deploy {
     });
   }
 
-  async buildImageByDockerCompose(remote: string, imageName: string) {
+  async buildImageByDockerCompose(remote: string, appName: string, imageName: string) {
     let command = `docker-compose build -f `;
     if (INPUT_DOCKERFILE) {
-      command += `${remote}/Dockerfile`
+      command += `docker-compose-files/${appName}-docker-compose.yml`
     } else {
       command += `${remote}/__Dockerfile`
     }
@@ -227,8 +227,11 @@ export class Deploy {
     });
   }
 
-  async createAndUploadDockerComposeFile(remote: string, { imageName, containerName, appName }: any) {
-    console.log("`${remote}/docker-compose.yml`", `${remote}/docker-compose.yml`)
+  async createAndUploadDockerComposeFile(remote: string, {
+    imageName,
+    containerName,
+    appName
+  }: any) {
     let dockerComposeConfig = DockerComposeTpl
 
     dockerComposeConfig = dockerComposeConfig
@@ -281,7 +284,7 @@ export class Deploy {
 
     return new Promise((resolve, reject) => {
       Deploy.ssh
-        .putFile(`${GITHUB_WORKSPACE}/docker-compose.yml`, `docker-compose-files/${appName}_docker-compose.yml`)
+        .putFile(`${GITHUB_WORKSPACE}/docker-compose.yml`, `docker-compose-files/${appName}-docker-compose.yml`)
         .then(
           () => {
             console.log("The docker-compose config is done");
