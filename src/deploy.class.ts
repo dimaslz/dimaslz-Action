@@ -190,6 +190,7 @@ export class Deploy {
     return new Promise(async (resolve, reject) => {
       try {
         await Deploy.ssh.execCommand(command).then(async (result: any) => {
+          console.log("result.stderr", result.stderr)
           if (result.stderr) {
             this.close();
             reject(result.stderr);
