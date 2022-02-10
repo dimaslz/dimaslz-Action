@@ -191,15 +191,18 @@ export class Deploy {
       try {
         await Deploy.ssh.execCommand(command).then(async (result: any) => {
           console.log("result.stderr", result.stderr)
-          if (result.stderr) {
-            this.close();
-            reject(result.stderr);
-          }
+          console.log("result.stdout", result.stdout)
+          // if (result.stderr) {
+          //   this.close();
+          //   reject(result.stderr);
+          // }
 
           const imageId: string = await this.getImageIDByImageName(imageName);
           resolve(imageId);
         });
-      } catch {
+      } catch (err) {
+        console.log("errerr", err)
+        reject();
         this.close();
       }
     });
