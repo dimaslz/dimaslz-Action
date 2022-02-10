@@ -185,6 +185,7 @@ export class Deploy {
 
   async buildImageByDockerCompose(remote: string, appName: string, imageName: string) {
     let command = `docker-compose -f docker-compose-files/${appName}-docker-compose.yml build`;
+    console.log("docker build command", command);
 
     return new Promise(async (resolve, reject) => {
       try {
