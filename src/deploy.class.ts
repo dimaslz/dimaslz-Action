@@ -184,12 +184,7 @@ export class Deploy {
   }
 
   async buildImageByDockerCompose(remote: string, appName: string, imageName: string) {
-    let command = `docker-compose build -f `;
-    if (INPUT_DOCKERFILE) {
-      command += `docker-compose-files/${appName}-docker-compose.yml`
-    } else {
-      command += `${remote}/__Dockerfile`
-    }
+    let command = `docker-compose -f docker-compose-files/${appName}-docker-compose.yml build`;
 
     return new Promise(async (resolve, reject) => {
       try {
@@ -237,6 +232,7 @@ export class Deploy {
     dockerComposeConfig = dockerComposeConfig
       .replace("%SERVICE_NAME%", appName)
       .replace("%IMAGE_NAME%", imageName)
+      .replace("%CONTAINER_NAME%", containerName)
       .replace("%DOCKERFILE_FILE_CONTEXT%", remote);
 
     const APP_PORTS = INPUT_APP_PORTS || "80"
