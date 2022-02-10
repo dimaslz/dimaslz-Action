@@ -198,11 +198,15 @@ export class Deploy {
           // }
 
           const imageId: string = await this.getImageIDByImageName(imageName);
-          resolve(imageId);
+          if (imageId) {
+            return resolve(imageId);
+          }
+
+          reject(null);
         });
       } catch (err) {
         console.log("errerr", err)
-        reject();
+        reject(null);
         this.close();
       }
     });
@@ -734,22 +738,25 @@ export class Deploy {
     });
   }
 
-  async runContainer(
-    imageName: string,
-    containerName: string,
+  async runContainer({
+    // image,
+    container,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    volumeName: string,
-    appDir: string
-  ) {
-    console.log(`Running container ${containerName}`);
+    // volume,
+    appName
+  }: any) {
+    console.log(`Running container ${container}`);
     return new Promise(async (resolve, reject) => {
       // const command = `docker run --name ${containerName} -v ${volumeName}:/app -d ${imageName}`;
-      let envFileCmd = "";
-      if (INPUT_ENV) {
-        envFileCmd = `--env-file ${appDir}/.__env`;
-      }
-      const command = `docker run --name ${containerName} ${envFileCmd} -d ${imageName}`;
-      console.log("COMMAND", command);
+      // let envFileCmd = "";
+      // if (INPUT_ENV) {
+      //   envFileCmd = `--env-file ${appDir}/.__env`;
+      // }
+
+      const command = `docker-compose -f ./docker-compose-files/${appName}-docker-compose.yml run ${appName} --name ${appName}`
+
+      // const command = `docker run --name ${containerName} ${envFileCmd} -d ${imageName}`;
+      // console.log("COMMAND", command);
 
       await Deploy.ssh.execCommand(command).then((result: any) => {
         if (result.stderr) {
@@ -759,14 +766,15 @@ export class Deploy {
       });
 
       const containerID = await this.getContainerIDByContainerName(
-        containerName
+        container
       );
       const containerIP = await this.getContainerIPByContainerName(
-        containerName
+        container
       );
       const containerPort = await this.getContainerPortByContainerName(
-        containerName
+        container
       );
+
       resolve({
         containerID,
         containerIP,

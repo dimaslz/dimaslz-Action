@@ -104,24 +104,26 @@ export const deploy = async (actionArgs: any) => {
   // );
 
   // let NEW_CONTAINER_INFO: any = null;
-  // if (!NEW_IMAGE_ID) {
-  //   core.error("🚀 Deploy: no image created");
-  //   deployInstance.close();
-  //   return;
-  // }
+  if (!NEW_IMAGE_ID) {
+    core.error("🚀 Deploy: no image created");
+    deployInstance.close();
+    return;
+  }
 
-  // const volumeExists = await deployInstance.volumeExists(NEW_VOLUME_NAME);
-  // if (!volumeExists) {
-  //   await deployInstance.createVolume(NEW_VOLUME_NAME);
-  // }
+  const volumeExists = await deployInstance.volumeExists(NEW_VOLUME_NAME);
+  if (!volumeExists) {
+    await deployInstance.createVolume(NEW_VOLUME_NAME);
+  }
 
-  // core.info("🚀 Deploy: running container");
-  // NEW_CONTAINER_INFO = await deployInstance.runContainer(
-  //   NEW_IMAGE_NAME,
-  //   NEW_CONTAINER_NAME,
-  //   NEW_VOLUME_NAME,
-  //   APP_DIR
-  // );
+  core.info("🚀 Deploy: running container");
+  let NEW_CONTAINER_INFO = await deployInstance.runContainer({
+    image: NEW_IMAGE_NAME,
+    container: NEW_CONTAINER_NAME,
+    volume: NEW_VOLUME_NAME,
+    appName: ENV_APP_NAME,
+  });
+
+  core.info(`ℹ️ Deploy: container info ${JSON.stringify(NEW_CONTAINER_INFO)}`);
 
   // if (!NEW_CONTAINER_INFO.containerID) {
   //   core.error(
