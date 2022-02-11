@@ -759,10 +759,12 @@ export class Deploy {
       console.log("COMMAND", command);
 
       await Deploy.ssh.execCommand(command).then((result: any) => {
-        if (result.stderr) {
-          this.close();
-          reject(result.stderr);
-        }
+        // if (result.stderr) {
+        //   this.close();
+        //   // reject(result.stderr);
+        //   resolve(result.stdout);
+        // }
+        resolve(result.stdout);
       });
 
       const containerID = await this.getContainerIDByContainerName(
