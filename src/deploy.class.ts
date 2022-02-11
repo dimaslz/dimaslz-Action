@@ -71,7 +71,7 @@ export class Deploy {
         .execCommand(
           `docker ps --format="{{.Names}} {{.ID}}" \
 			| grep '${name}' \
-			| grep -Po '\\s(.*?$)'`
+			| grep -Po '_(.*?)_'`
         )
         .then((result: any) => {
           if (result.stderr) {
@@ -79,7 +79,10 @@ export class Deploy {
             reject(result.stderr);
           }
 
-          resolve(result.stdout.replace(/\n/gm, ""));
+          const r = result.stdout
+            .replace(/\n/gm, "")
+            .map((c: any) => c.replace(/^_|_$/g, ''))
+          resolve(r);
         });
     });
   }

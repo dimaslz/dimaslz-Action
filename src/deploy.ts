@@ -47,6 +47,9 @@ export const deploy = async (actionArgs: any) => {
   const CONTAINER_IDs = await deployInstance.getContainersIDByAppName(
     `${REPO_ID}.`
   );
+  const CONTAINER_NAMES = await deployInstance.getContainersIDByAppName(
+    `${REPO_ID}.`
+  );
 
   const IMAGES_IDs = await deployInstance.getImagesIDByAppName(`${REPO_ID}.`);
 
@@ -152,7 +155,7 @@ export const deploy = async (actionArgs: any) => {
 
   if (!!CONTAINER_IDs) {
     core.info(`🚀 Deploy: Removing old containers...`);
-    await deployInstance.stopContainerByName(CONTAINER_IDs.split(" ")[0]);
+    await deployInstance.stopContainerByName(CONTAINER_NAMES.split(" ")[0]);
 
     // core.info(`🚀 Deploy: Removing old images...`);
     // await deployInstance.removeImagesByName(IMAGES_IDs);
