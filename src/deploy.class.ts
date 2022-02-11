@@ -67,12 +67,13 @@ export class Deploy {
 
   async getContainersIDByAppName(name: string): Promise<string> {
     return new Promise((resolve, reject) => {
-      Deploy.ssh
-        .execCommand(
-          `docker ps --format="{{.Names}} {{.ID}}" \
+      const command = `docker ps --format="{{.Names}} {{.ID}}" \
 			| grep '${name}' \
-			| grep -Po '_(.*?)_'`
-        )
+			| grep -Po '_(.*?)_'`;
+
+      console.log("getContainersIDByAppName [command]", command)
+      Deploy.ssh
+        .execCommand(command)
         .then((result: any) => {
           if (result.stderr) {
             this.close();
@@ -82,6 +83,9 @@ export class Deploy {
           const r = result.stdout
             .replace(/\n/gm, "")
             .map((c: any) => c.replace(/^_|_$/g, ''))
+
+          console.log("getContainersIDByAppName [r]", r)
+
           resolve(r);
         });
     });

@@ -44,12 +44,14 @@ export const deploy = async (actionArgs: any) => {
   const APP_URL = `${app_name}.${app_host}`;
 
   core.info(`🚀 Deploy: REPO_ID ${REPO_ID}`);
-  const CONTAINER_IDs = await deployInstance.getContainersIDByAppName(
-    `${REPO_ID}.`
-  );
+  // const CONTAINER_IDs = await deployInstance.getContainersIDByAppName(
+  //   `${REPO_ID}.`
+  // );
   const CONTAINER_NAMES = await deployInstance.getContainersIDByAppName(
     `${REPO_ID}.`
   );
+
+  console.log("CONTAINER_NAMES", CONTAINER_NAMES)
 
   const IMAGES_IDs = await deployInstance.getImagesIDByAppName(`${REPO_ID}.`);
 
@@ -153,7 +155,8 @@ export const deploy = async (actionArgs: any) => {
     await deployInstance.restartNginx();
   }
 
-  if (!!CONTAINER_IDs) {
+  // if (!!CONTAINER_IDs) {
+  if (!!CONTAINER_NAMES) {
     core.info(`🚀 Deploy: Removing old containers... ${CONTAINER_NAMES}`);
     await deployInstance.stopContainerByName(CONTAINER_NAMES.split(" ")[0]);
 
