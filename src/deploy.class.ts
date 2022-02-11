@@ -755,21 +755,21 @@ export class Deploy {
 
       const command = `docker-compose -f docker-compose-files/${appName}-docker-compose.yml run -d ${appName}`
 
-      // const command = `docker run --name ${containerName} ${envFileCmd} -d ${imageName}`;
-      console.log("COMMAND", command);
-
-      await Deploy.ssh.execCommand(command).then((result: any) => {
+      await Deploy.ssh.execCommand(command).then(() => {
         // if (result.stderr) {
         //   this.close();
         //   // reject(result.stderr);
         //   resolve(result.stdout);
         // }
-        resolve(result.stdout);
+        // resolve(result.stdout);
       });
 
       const containerID = await this.getContainerIDByContainerName(
         container
       );
+
+      if (!containerID) resolve(null);
+
       const containerIP = await this.getContainerIPByContainerName(
         container
       );
