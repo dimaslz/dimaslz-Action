@@ -482,6 +482,10 @@ export class Deploy {
         }
 
         resolve(result.stdout);
+      }).catch((err: any) => {
+        this.close();
+        console.log("getContainerIDByContainerName [err]")
+        reject(err);
       });
     });
   }
@@ -766,8 +770,8 @@ export class Deploy {
         //   resolve(result.stdout);
         // }
         // resolve(result.stdout);
-        console.log("AAA", result.stdout)
-        console.log("BBB", result.stderr)
+        // console.log("AAA", result.stdout)
+        // console.log("BBB", result.stderr)
       });
 
       const containerID = await this.getContainerIDByContainerName(
