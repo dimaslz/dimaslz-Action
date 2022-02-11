@@ -595,7 +595,7 @@ export class Deploy {
   async stopContainerByName(appName: string): Promise<boolean> {
     const stop = async (app: string) => {
       return new Promise((resolve, reject) => {
-        const command = `docker-compose-files/${app}-docker-compose.yml down`;
+        const command = `docker-componse -f docker-compose-files/${app}-docker-compose.yml down`;
 
         Deploy.ssh.execCommand(command).then(() => {
           // if (result.stderr) {
