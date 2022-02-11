@@ -495,12 +495,15 @@ export class Deploy {
       const command = `docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${containerName}`;
 
       Deploy.ssh.execCommand(command).then((result: any) => {
-        if (result.stderr) {
-          this.close();
-          reject(result.stderr);
-        }
+        // if (result.stderr) {
+        //   this.close();
+        //   reject(result.stderr);
+        // }
 
         resolve(result.stdout);
+      }).catch((err: any) => {
+          this.close();
+          reject(err);
       });
     });
   }
@@ -512,12 +515,15 @@ export class Deploy {
       const command = `docker container ls | grep '${containerName}' | grep -Po '\\d+\/tcp' | grep -Po '\\d+'`;
 
       Deploy.ssh.execCommand(command).then((result: any) => {
-        if (result.stderr) {
-          this.close();
-          reject(result.stderr);
-        }
+        // if (result.stderr) {
+        //   this.close();
+        //   reject(result.stderr);
+        // }
 
         resolve(result.stdout);
+      }).catch((err: any) => {
+        this.close();
+        reject(err);
       });
     });
   }
@@ -781,14 +787,17 @@ export class Deploy {
 
       console.log("runContainer [containerID]", containerID)
 
-      if (!containerID) resolve(null);
+      if (!containerID) reject(null);
 
       const containerIP = await this.getContainerIPByContainerName(
         appName
       );
+      console.log("runContainer [containerIP]", containerIP)
+
       const containerPort = await this.getContainerPortByContainerName(
         appName
       );
+      console.log("runContainer [containerPort]", containerPort)
 
       resolve({
         containerID,
