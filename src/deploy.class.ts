@@ -797,7 +797,7 @@ export class Deploy {
     });
   }
 
-  async getNginxConfig(root: string, server_name: string, server_url: string) {
+  async getNginxConfig(server_name: string, server_url: string) {
     if (toBoolean(INPUT_WILDCARD_SSL)) {
       nginx_main_wildcard_config
         .replace(/\%DOMAIN\%/g, INPUT_APP_HOST)

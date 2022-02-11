@@ -116,7 +116,7 @@ export const deploy = async (actionArgs: any) => {
   }
 
   core.info("🚀 Deploy: running container");
-  let NEW_CONTAINER_INFO = await deployInstance.runContainer({
+  let NEW_CONTAINER_INFO: any = await deployInstance.runContainer({
     image: NEW_IMAGE_NAME,
     container: NEW_CONTAINER_NAME,
     volume: NEW_VOLUME_NAME,
@@ -125,31 +125,30 @@ export const deploy = async (actionArgs: any) => {
 
   core.info(`ℹ️ Deploy: container info ${JSON.stringify(NEW_CONTAINER_INFO)}`);
 
-  // if (!NEW_CONTAINER_INFO.containerID) {
-  //   core.error(
-  //     "🚀 Deploy: some error has been occurred. Container is not running"
-  //   );
-  //   deployInstance.close();
-  //   return;
-  // }
-  // let nginxConfig = "";
-  // core.info("🚀 Deploy: container created");
+  if (!NEW_CONTAINER_INFO.containerID) {
+    core.error(
+      "🚀 Deploy: some error has been occurred. Container is not running"
+    );
+    deployInstance.close();
+    return;
+  }
+  let nginxConfig = "";
+  core.info("🚀 Deploy: container created");
 
-  // core.info("🚀 Deploy: setting nginx config");
-  // nginxConfig = await deployInstance.getNginxConfig(
-  //   `${APP_DIR}/dist`,
-  //   `${app_name}.${app_host}`,
-  //   `http://${NEW_CONTAINER_INFO.containerIP}:${NEW_CONTAINER_INFO.containerPort}`
-  // );
+  core.info("🚀 Deploy: setting nginx config");
+  nginxConfig = await deployInstance.getNginxConfig(
+    `${app_name}.${app_host}`,
+    `http://${NEW_CONTAINER_INFO.containerIP}:${NEW_CONTAINER_INFO.containerPort}`
+  );
 
-  // if (nginxConfig) {
-  //   core.info("🚀 Deploy: test and restarting NGINX");
-  //   await deployInstance.uploadNginxConfig(
-  //     nginxConfig,
-  //     `/etc/nginx/sites-enabled/${APP_URL}`
-  //   );
-  //   await deployInstance.restartNginx();
-  // }
+  if (nginxConfig) {
+    core.info("🚀 Deploy: test and restarting NGINX");
+    await deployInstance.uploadNginxConfig(
+      nginxConfig,
+      `/etc/nginx/sites-enabled/${APP_URL}`
+    );
+    await deployInstance.restartNginx();
+  }
 
   // if (!!CONTAINER_IDs) {
   //   core.info(`🚀 Deploy: Removing old containers...`);
