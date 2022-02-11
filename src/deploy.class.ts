@@ -753,10 +753,10 @@ export class Deploy {
       //   envFileCmd = `--env-file ${appDir}/.__env`;
       // }
 
-      const command = `docker-compose -f ./docker-compose-files/${appName}-docker-compose.yml run ${appName} --name ${appName}`
+      const command = `docker-compose -f docker-compose-files/${appName}-docker-compose.yml run ${appName} --name ${appName}`
 
       // const command = `docker run --name ${containerName} ${envFileCmd} -d ${imageName}`;
-      // console.log("COMMAND", command);
+      console.log("COMMAND", command);
 
       await Deploy.ssh.execCommand(command).then((result: any) => {
         if (result.stderr) {
