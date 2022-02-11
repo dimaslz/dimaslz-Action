@@ -154,7 +154,7 @@ export const deploy = async (actionArgs: any) => {
   }
 
   if (!!CONTAINER_IDs) {
-    core.info(`🚀 Deploy: Removing old containers...`);
+    core.info(`🚀 Deploy: Removing old containers... ${CONTAINER_NAMES}`);
     await deployInstance.stopContainerByName(CONTAINER_NAMES.split(" ")[0]);
 
     // core.info(`🚀 Deploy: Removing old images...`);
