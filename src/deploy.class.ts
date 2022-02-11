@@ -765,16 +765,16 @@ export class Deploy {
       });
 
       const containerID = await this.getContainerIDByContainerName(
-        container
+        appName
       );
 
       if (!containerID) resolve(null);
 
       const containerIP = await this.getContainerIPByContainerName(
-        container
+        appName
       );
       const containerPort = await this.getContainerPortByContainerName(
-        container
+        appName
       );
 
       resolve({
