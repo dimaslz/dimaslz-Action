@@ -763,20 +763,23 @@ export class Deploy {
 
       const command = `docker-compose -f docker-compose-files/${appName}-docker-compose.yml run -d ${appName}`
 
-      await Deploy.ssh.execCommand(command).then((result: any) => {
-        // if (result.stderr) {
-        //   this.close();
-        //   // reject(result.stderr);
-        //   resolve(result.stdout);
-        // }
-        // resolve(result.stdout);
-        // console.log("AAA", result.stdout)
-        // console.log("BBB", result.stderr)
-      });
+      await Deploy.ssh.execCommand(command);
+      // await Deploy.ssh.execCommand(command).then((result: any) => {
+      //   // if (result.stderr) {
+      //   //   this.close();
+      //   //   // reject(result.stderr);
+      //   //   resolve(result.stdout);
+      //   // }
+      //   // resolve(result.stdout);
+      //   // console.log("AAA", result.stdout)
+      //   // console.log("BBB", result.stderr)
+      // });
 
       const containerID = await this.getContainerIDByContainerName(
         appName
       );
+
+      console.log("runContainer [containerID]", containerID)
 
       if (!containerID) resolve(null);
 
