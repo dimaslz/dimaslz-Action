@@ -471,7 +471,11 @@ export class Deploy {
     return new Promise((resolve, reject) => {
       const command = `docker ps --format="{{.Names}} {{.ID}}" | grep '${containerName}' | grep -Po '\\s(.*?$)'`;
 
+      console.log("getImageIDByImageName [command]", command);
+
       Deploy.ssh.execCommand(command).then((result: any) => {
+        console.log("getContainerIDByContainerName [result.stderr]", result.stderr);
+        console.log("getContainerIDByContainerName [result.stdout]", result.stdout);
         if (result.stderr) {
           this.close();
           reject(result.stderr);
@@ -755,13 +759,15 @@ export class Deploy {
 
       const command = `docker-compose -f docker-compose-files/${appName}-docker-compose.yml run -d ${appName}`
 
-      await Deploy.ssh.execCommand(command).then(() => {
+      await Deploy.ssh.execCommand(command).then((result: any) => {
         // if (result.stderr) {
         //   this.close();
         //   // reject(result.stderr);
         //   resolve(result.stdout);
         // }
         // resolve(result.stdout);
+        console.log("AAA", result.stdout)
+        console.log("BBB", result.stderr)
       });
 
       const containerID = await this.getContainerIDByContainerName(
