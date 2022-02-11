@@ -150,13 +150,13 @@ export const deploy = async (actionArgs: any) => {
     await deployInstance.restartNginx();
   }
 
-  // if (!!CONTAINER_IDs) {
-  //   core.info(`🚀 Deploy: Removing old containers...`);
-  //   await deployInstance.stopContainerByName(CONTAINER_IDs);
+  if (!!CONTAINER_IDs) {
+    core.info(`🚀 Deploy: Removing old containers...`);
+    await deployInstance.stopContainerByName(CONTAINER_IDs.split(" ")[0]);
 
-  //   core.info(`🚀 Deploy: Removing old images...`);
-  //   await deployInstance.removeImagesByName(IMAGES_IDs);
-  // }
+    // core.info(`🚀 Deploy: Removing old images...`);
+    // await deployInstance.removeImagesByName(IMAGES_IDs);
+  }
 
   // core.info("🚀 Deploy: delete files");
   // await deployInstance.deleteFiles(APP_DIR);

@@ -592,46 +592,50 @@ export class Deploy {
     });
   }
 
-  async stopContainerByName(containerName: string): Promise<boolean> {
-    const stop = async (container: string) => {
+  async stopContainerByName(appName: string): Promise<boolean> {
+    const stop = async (app: string) => {
       return new Promise((resolve, reject) => {
-        const command = `docker stop ${container}`;
+        const command = `docker-compose-files/${app}-docker-compose.yml down`;
 
-        Deploy.ssh.execCommand(command).then((result: any) => {
-          if (result.stderr) {
-            core.error(result.stderr);
-            this.close();
-            reject(false);
-          }
+        Deploy.ssh.execCommand(command).then(() => {
+          // if (result.stderr) {
+          //   core.error(result.stderr);
+          //   this.close();
+          //   reject(false);
+          // }
 
           resolve(true);
+        }).catch((err: any) => {
+          core.error(err);
+          this.close();
+          reject(false);
         });
       });
     };
 
-    if (!containerName) {
+    if (!appName) {
       core.error(`Container name/id is mandatory.`);
       return false;
     }
 
-    const arrContainerIDs = containerName.split(" ");
+    const arrContainerIDs = appName.split(" ");
     const isSingle = arrContainerIDs.length === 1;
     if (isSingle) {
-      const exists = await this.containerExists(containerName);
+      const exists = await this.containerExists(appName);
 
       if (exists) {
-        await stop(containerName);
-        core.info(`Container ${containerName} has been stopped.`);
+        await stop(appName);
+        core.info(`Container ${appName} has been stopped.`);
 
         return true;
       }
 
-      core.error(`Container ${containerName} doesn't exists.`);
+      core.error(`Container ${appName} doesn't exists.`);
     } else if (!isSingle) {
       for (const containerID of arrContainerIDs) {
         const stopped = await stop(containerID);
         if (stopped) {
-          core.info(`Container ${containerName} has been stopped.`);
+          core.info(`Container ${containerID} has been stopped.`);
         }
       }
     }
