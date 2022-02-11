@@ -490,9 +490,9 @@ export class Deploy {
     });
   }
 
-  async getContainerIPByContainerName(containerName: string): Promise<string> {
+  async getContainerIPByContainerId(containerId: string): Promise<string> {
     return new Promise((resolve, reject) => {
-      const command = `docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${containerName}`;
+      const command = `docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${containerId}`;
 
       Deploy.ssh.execCommand(command).then((result: any) => {
         // if (result.stderr) {
@@ -509,10 +509,10 @@ export class Deploy {
   }
 
   async getContainerPortByContainerName(
-    containerName: string
+    containerId: string
   ): Promise<string> {
     return new Promise((resolve, reject) => {
-      const command = `docker container ls | grep '${containerName}' | grep -Po '\\d+\/tcp' | grep -Po '\\d+'`;
+      const command = `docker container ls | grep '${containerId}' | grep -Po '\\d+\/tcp' | grep -Po '\\d+'`;
 
       Deploy.ssh.execCommand(command).then((result: any) => {
         // if (result.stderr) {
@@ -770,16 +770,6 @@ export class Deploy {
       const command = `docker-compose -f docker-compose-files/${appName}-docker-compose.yml run -d ${appName}`
 
       await Deploy.ssh.execCommand(command);
-      // await Deploy.ssh.execCommand(command).then((result: any) => {
-      //   // if (result.stderr) {
-      //   //   this.close();
-      //   //   // reject(result.stderr);
-      //   //   resolve(result.stdout);
-      //   // }
-      //   // resolve(result.stdout);
-      //   // console.log("AAA", result.stdout)
-      //   // console.log("BBB", result.stderr)
-      // });
 
       const containerID = await this.getContainerIDByContainerName(
         appName
@@ -789,13 +779,13 @@ export class Deploy {
 
       if (!containerID) reject(null);
 
-      const containerIP = await this.getContainerIPByContainerName(
-        appName
+      const containerIP = await this.getContainerIPByContainerId(
+        containerID
       );
       console.log("runContainer [containerIP]", containerIP)
 
       const containerPort = await this.getContainerPortByContainerName(
-        appName
+        containerID
       );
       console.log("runContainer [containerPort]", containerPort)
 
