@@ -47,7 +47,7 @@ export const deploy = async (actionArgs: any) => {
   // const CONTAINER_IDs = await deployInstance.getContainersIDByAppName(
   //   `${REPO_ID}.`
   // );
-  const CONTAINER_NAMES = await deployInstance.getContainersIDByAppName(
+  const CONTAINER_NAMES: string[] = await deployInstance.getContainersIDByAppName(
     `${REPO_ID}.`
   );
 
@@ -156,9 +156,9 @@ export const deploy = async (actionArgs: any) => {
   }
 
   // if (!!CONTAINER_IDs) {
-  if (!!CONTAINER_NAMES) {
-    core.info(`🚀 Deploy: Removing old containers... ${CONTAINER_NAMES}`);
-    await deployInstance.stopContainerByName(CONTAINER_NAMES.split(" ")[0]);
+  if (CONTAINER_NAMES.length) {
+    core.info(`🚀 Deploy: Removing old containers... ${CONTAINER_NAMES.join(' ')}`);
+    await deployInstance.stopContainerByName(CONTAINER_NAMES[0]);
 
     // core.info(`🚀 Deploy: Removing old images...`);
     // await deployInstance.removeImagesByName(IMAGES_IDs);

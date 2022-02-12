@@ -65,7 +65,7 @@ export class Deploy {
     return data?.id;
   }
 
-  async getContainersIDByAppName(name: string): Promise<string> {
+  async getContainersIDByAppName(name: string): Promise<string[]> {
     console.log("getContainersIDByAppName [app]", name)
 
     return new Promise((resolve, reject) => {
