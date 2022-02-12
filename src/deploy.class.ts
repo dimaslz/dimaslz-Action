@@ -803,11 +803,8 @@ export class Deploy {
     });
   }
 
-  async runContainer({
-    // image,
+  async runContainer(remote: string, {
     container,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    // volume,
     appName
   }: any) {
     console.log(`Running container ${container}`);
@@ -818,7 +815,7 @@ export class Deploy {
       //   envFileCmd = `--env-file ${appDir}/.__env`;
       // }
 
-      const command = `docker-compose -f docker-compose-files/${appName}-docker-compose.yml run -d ${appName}`
+      const command = `docker-compose -f ${remote}/docker-compose.yml run -d ${appName}`
 
       await Deploy.ssh.execCommand(command);
 

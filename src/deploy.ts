@@ -101,16 +101,14 @@ export const deploy = async (actionArgs: any) => {
     appName: ENV_APP_NAME,
   });
 
-  deployInstance.close();
 
-  // core.info("🚀 Deploy: creating run image");
-  // const NEW_IMAGE_ID = await deployInstance.buildImageByDockerCompose(
-  //   APP_ID_DIR,
-  //   NEW_IMAGE_NAME
-  // );
+  core.info("🚀 Deploy: creating run image");
+  const NEW_IMAGE_ID = await deployInstance.buildImageByDockerCompose(
+    APP_ID_DIR,
+    NEW_IMAGE_NAME
+  );
 
-  // core.info(`🚀 Deploy: IMAGE_ID > ${NEW_IMAGE_ID}`);
-
+  core.info(`🚀 Deploy: IMAGE_ID > ${NEW_IMAGE_ID}`);
 
   // // core.info("🚀 Deploy: creating image");
   // // const NEW_IMAGE_ID = await deployInstance.createImage(
@@ -118,27 +116,27 @@ export const deploy = async (actionArgs: any) => {
   // //   NEW_IMAGE_NAME
   // // );
 
-  // // let NEW_CONTAINER_INFO: any = null;
-  // if (!NEW_IMAGE_ID) {
-  //   core.error("🚀 Deploy: no image created");
-  //   deployInstance.close();
-  //   return;
-  // }
+  // let NEW_CONTAINER_INFO: any = null;
+  if (!NEW_IMAGE_ID) {
+    core.error("🚀 Deploy: no image created");
+    deployInstance.close();
+    return;
+  }
 
-  // const volumeExists = await deployInstance.volumeExists(NEW_VOLUME_NAME);
-  // if (!volumeExists) {
-  //   await deployInstance.createVolume(NEW_VOLUME_NAME);
-  // }
+  const volumeExists = await deployInstance.volumeExists(NEW_VOLUME_NAME);
+  if (!volumeExists) {
+    await deployInstance.createVolume(NEW_VOLUME_NAME);
+  }
 
-  // core.info("🚀 Deploy: running container");
-  // let NEW_CONTAINER_INFO: any = await deployInstance.runContainer({
-  //   image: NEW_IMAGE_NAME,
-  //   container: NEW_CONTAINER_NAME,
-  //   volume: NEW_VOLUME_NAME,
-  //   appName: ENV_APP_NAME,
-  // });
+  core.info("🚀 Deploy: running container");
+  const NEW_CONTAINER_INFO: any = await deployInstance.runContainer(APP_ID_DIR, {
+    container: NEW_CONTAINER_NAME,
+    appName: ENV_APP_NAME,
+  });
 
-  // core.info(`ℹ️ Deploy: container info ${JSON.stringify(NEW_CONTAINER_INFO)}`);
+  core.info(`ℹ️ Deploy: container info ${JSON.stringify(NEW_CONTAINER_INFO)}`);
+
+  deployInstance.close();
 
   // if (!NEW_CONTAINER_INFO.containerID) {
   //   core.error(
