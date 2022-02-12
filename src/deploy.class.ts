@@ -275,7 +275,7 @@ export class Deploy {
       const PORTS = APP_PORTS.split(',')
         .map(e => e.trim())
         .map(e => (
-          portLine.replace('%PORT%', `${e}:${e}`)
+          portLine.replace('%PORT%', `${e}`)
         ))
         .join('\n');
 
