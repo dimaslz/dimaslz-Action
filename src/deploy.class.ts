@@ -111,7 +111,7 @@ export class Deploy {
     return new Promise((resolve, reject) => {
       Deploy.ssh
         .execCommand(
-          `docker images --format="{{.Repository}}" | grep '${name}'`
+          `docker images --format="{{.Repository}} {{.ID}}" | grep '${name}'`
         )
         .then((result: any) => {
           // if (result.stderr) {
@@ -124,12 +124,13 @@ export class Deploy {
             .map((c: any) => c.trim())
             .filter((i: string) => i)
             .map(
-              (imageName: string) => {
+              (i: string) => {
+                const [imageName, id] = i.split(" ");
                 const [, repoId, name, timestamp, hash, env]: any
                   = imageName.match(/^.*?(\d+)\.(.+?\.\w{2,})\.(\d+)\.([^\.]+)\.([^\._]+)/)
 
                 return {
-                  name, repoId, timestamp, hash, env
+                  name, repoId, id, timestamp, hash, env
                 };
               }
             )
@@ -797,7 +798,7 @@ export class Deploy {
     if (isSingle) {
       const imageName = `${imageId[0].repoId}.${imageId[0].name}.${imageId[0].timestamp}.${imageId[0].hash}.${imageId[0].env}.image`;
 
-      const exists = await this.imageExists(imageName);
+      const exists = await this.imageExists(imageId[0].id);
 
       if (exists) {
         await remove(imageName);
@@ -811,7 +812,7 @@ export class Deploy {
       for (const imageID of arrImageIDs) {
         const imageName = `${imageID.repoId}.${imageID.name}.${imageID.timestamp}.${imageID.hash}.${imageID.env}.image`;
 
-        const removed = await remove(imageName);
+        const removed = await remove(imageID.id);
 
         if (removed) {
           core.info(`Image ${imageName} has been deleted.`);
