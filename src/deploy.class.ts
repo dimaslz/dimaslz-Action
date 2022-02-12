@@ -95,21 +95,22 @@ export class Deploy {
     });
   }
 
-  async getImagesIDByAppName(name: string): Promise<string> {
+  async getImagesIDByAppName(name: string): Promise<string[]> {
     return new Promise((resolve, reject) => {
       Deploy.ssh
         .execCommand(
-          `docker images --format="{{.Repository}} {{.ID}}" \
-			| grep '${name}' \
-			| grep -Po '\\s(.*?$)'`
+          `docker images --format="{{.Repository}}" | grep '${name}'`
         )
         .then((result: any) => {
-          if (result.stderr) {
-            this.close();
-            reject(result.stderr);
-          }
+          // if (result.stderr) {
+          //   this.close();
+          //   reject(result.stderr);
+          // }
 
-          resolve(result.stdout.replace(/\n/gm, ""));
+          resolve(result.stdout.split(/\n/gm));
+        }).catch((err: any) => {
+          this.close();
+          reject(err);
         });
     });
   }
@@ -603,7 +604,7 @@ export class Deploy {
     });
   }
 
-  async stopContainerByName(appName: string): Promise<boolean> {
+  async stopContainerByName(appName: string[]): Promise<boolean> {
     console.log("stopContainerByName [appName]", appName)
     const stop = async (app: string) => {
       return new Promise((resolve, reject) => {
@@ -626,27 +627,27 @@ export class Deploy {
       });
     };
 
-    if (!appName) {
+    if (!appName.length) {
       core.error(`Container name/id is mandatory.`);
       return false;
     }
 
-    const arrContainerIDs = appName.split(" ");
+    const arrContainerIDs = appName;
     const isSingle = arrContainerIDs.length === 1;
 
     console.log("stopContainerByName [isSingle]", isSingle)
     if (isSingle) {
-      const exists = await this.containerExists(appName);
+      const exists = await this.containerExists(appName[0]);
 
       console.log("stopContainerByName [exists]", exists)
       if (exists) {
-        await stop(appName);
-        core.info(`Container ${appName} has been stopped.`);
+        await stop(appName[0]);
+        core.info(`Container ${appName[0]} has been stopped.`);
 
         return true;
       }
 
-      core.error(`Container ${appName} doesn't exists.`);
+      core.error(`Container ${appName[0]} doesn't exists.`);
     } else if (!isSingle) {
       for (const containerID of arrContainerIDs) {
         const stopped = await stop(containerID);
@@ -708,7 +709,7 @@ export class Deploy {
     return false;
   }
 
-  async removeImagesByName(imageId: string): Promise<boolean> {
+  async removeImagesByName(imageId: string[]): Promise<boolean> {
     const remove = async (image: string) => {
       return new Promise((resolve, reject) => {
         const command = `docker rmi -f ${image}`;
@@ -725,31 +726,31 @@ export class Deploy {
       });
     };
 
-    if (!imageId) {
+    if (!imageId.length) {
       core.error(`Image id is mandatory.`);
       return false;
     }
 
-    const arrImageIDs = imageId.split(" ");
+    const arrImageIDs = imageId;
     const isSingle = arrImageIDs.length === 1;
     if (isSingle) {
-      const exists = await this.imageExists(imageId);
+      const exists = await this.imageExists(imageId[0]);
 
       if (exists) {
-        await remove(imageId);
-        core.info(`Image ${imageId} has been deleted.`);
+        await remove(imageId[0]);
+        core.info(`Image ${imageId[0]} has been deleted.`);
 
         return true;
       }
 
-      core.error(`Image ${imageId} doesn't exists.`);
+      core.error(`Image ${imageId[0]} doesn't exists.`);
     } else if (!isSingle) {
       for (const imageID of arrImageIDs) {
         const removed = await remove(imageID);
         if (removed) {
-          core.info(`Image ${imageId} has been deleted.`);
+          core.info(`Image ${imageID} has been deleted.`);
         } else {
-          core.error(`Image ${imageId} not deleted.`);
+          core.error(`Image ${imageID} not deleted.`);
         }
       }
     }

@@ -53,7 +53,7 @@ export const deploy = async (actionArgs: any) => {
 
   console.log("CONTAINER_NAMES", CONTAINER_NAMES)
 
-  const IMAGES_IDs = await deployInstance.getImagesIDByAppName(`${REPO_ID}.`);
+  const IMAGES_IDs: string[] = await deployInstance.getImagesIDByAppName(`${REPO_ID}.`);
 
   const ENV_APP_NAME = `${REPO_ID}.${APP_URL}.${TIMESTAMP}.${GITHUB_SHA}.${ENV}`;
   const APP_ID = `${TIMESTAMP}.${GITHUB_SHA}`;
@@ -158,10 +158,10 @@ export const deploy = async (actionArgs: any) => {
   // if (!!CONTAINER_IDs) {
   if (CONTAINER_NAMES.length) {
     core.info(`🚀 Deploy: Removing old containers... ${CONTAINER_NAMES.join(' ')}`);
-    await deployInstance.stopContainerByName(CONTAINER_NAMES[0]);
+    await deployInstance.stopContainerByName(CONTAINER_NAMES);
 
-    // core.info(`🚀 Deploy: Removing old images...`);
-    // await deployInstance.removeImagesByName(IMAGES_IDs);
+    core.info(`🚀 Deploy: Removing old images...`);
+    await deployInstance.removeImagesByName(IMAGES_IDs);
   }
 
   // core.info("🚀 Deploy: delete files");
