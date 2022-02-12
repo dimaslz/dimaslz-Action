@@ -6,6 +6,8 @@ COPY . .
 
 RUN apk update
 
+%ENVIRONMENT_VARS%
+
 RUN yarn install
 
 RUN NODE_ENV=production yarn build
@@ -121,6 +123,8 @@ services:
     build:
       context: %DOCKERFILE_FILE_CONTEXT%
       dockerfile: %DOCKERFILE_FILE_NAME%
+      args:
+        - %ARGS%
     ports:
       - %PORT%
     environment:

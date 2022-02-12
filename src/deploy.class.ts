@@ -84,6 +84,7 @@ export class Deploy {
           const r = result.stdout
             .split(/\n/gm)
             .map((c: any) => c.replace(/^_|_$/g, ''))
+            .filter((i: string) => i)
 
           console.log("getContainersIDByAppName [r]", r)
 
@@ -107,7 +108,7 @@ export class Deploy {
           //   reject(result.stderr);
           // }
 
-          resolve(result.stdout.split(/\n/gm));
+          resolve(result.stdout.split(/\n/gm).filter((i: string) => i));
         }).catch((err: any) => {
           this.close();
           reject(err);
@@ -195,8 +196,8 @@ export class Deploy {
     });
   }
 
-  async buildImageByDockerCompose(remote: string, appName: string, imageName: string) {
-    let command = `docker-compose -f docker-compose-files/${appName}-docker-compose.yml build`;
+  async buildImageByDockerCompose(remote: string, imageName: string) {
+    let command = `docker-compose -f ${remote}/docker-compose.yml build`;
     console.log("docker build command", command);
 
     return new Promise(async (resolve, reject) => {
@@ -283,16 +284,31 @@ export class Deploy {
         dockerComposeConfig = dockerComposeConfig
           .replace(/^.*?-\s\%ENVIRONMENT\%/mg, ENV_VARS)
       }
-    }
 
+      const [argLine] = dockerComposeConfig.match(/^.*?-\s\%ARGS\%/mg) || [];
+      if (argLine) {
+        const ARGS_VARS = INPUT_ENV?.split(/\n/)
+          .filter(e => e)
+          .map((e) => (
+            argLine.replace('%ARGS%', `${e}`)
+          ))
+          .join('\n');
 
-    if (INPUT_DOCKERFILE) {
-      dockerComposeConfig = dockerComposeConfig
-        .replace("%DOCKERFILE_FILE_NAME%", `Dockerfile`);
-      } else {
         dockerComposeConfig = dockerComposeConfig
-        .replace("%DOCKERFILE_FILE_NAME%", `__Dockerfile`);
+          .replace(/^.*?-\s\%ARGS\%/mg, ARGS_VARS)
+      }
     }
+
+
+    dockerComposeConfig = dockerComposeConfig
+      .replace("%DOCKERFILE_FILE_NAME%", `Dockerfile`);
+    // if (INPUT_DOCKERFILE) {
+    //   dockerComposeConfig = dockerComposeConfig
+    //     .replace("%DOCKERFILE_FILE_NAME%", `Dockerfile`);
+    //   } else {
+    //     dockerComposeConfig = dockerComposeConfig
+    //     .replace("%DOCKERFILE_FILE_NAME%", `Dockerfile`);
+    // }
 
     fs.writeFileSync(
       `${GITHUB_WORKSPACE}/docker-compose.yml`,
@@ -301,7 +317,7 @@ export class Deploy {
 
     return new Promise((resolve, reject) => {
       Deploy.ssh
-        .putFile(`${GITHUB_WORKSPACE}/docker-compose.yml`, `docker-compose-files/${appName}-docker-compose.yml`)
+        .putFile(`${GITHUB_WORKSPACE}/docker-compose.yml`, `${remote}/docker-compose.yml`)
         .then(
           () => {
             console.log("The docker-compose config is done");
@@ -327,19 +343,33 @@ export class Deploy {
     if (INPUT_DOCKERFILE) return Promise.resolve(null);
 
     core.info("Creating default Dockerfile");
-    const Dockerfile = toBoolean(INPUT_STATIC)
-    ? nginx_static_dockerfile
-    : node_server_dockerfile.replace("$COMMAND", INPUT_RUN_COMMAND)
+    let Dockerfile = toBoolean(INPUT_STATIC)
+      ? nginx_static_dockerfile
+      : node_server_dockerfile.replace("$COMMAND", INPUT_RUN_COMMAND)
+
+    let ENVIRONMENT_VARS = ""
+    if (INPUT_ENV) {
+      ENVIRONMENT_VARS = INPUT_ENV?.split(/\n/)
+        .filter(e => e)
+        .map(e => e.trim())
+        .map(e => {
+          const [name] = e.split('=');
+          return `ARG ${name}\nENV ${name} $${name}`
+        })
+        .join("\n");
+    }
+
+    Dockerfile = Dockerfile.replace("%ENVIRONMENT_VARS%", ENVIRONMENT_VARS);
 
     core.info(`Dockerfile: ${Dockerfile}`);
     fs.writeFileSync(
-      `${GITHUB_WORKSPACE}/__Dockerfile`,
+      `${GITHUB_WORKSPACE}/Dockerfile`,
       Dockerfile
     );
 
     return new Promise((resolve, reject) => {
       Deploy.ssh
-        .putFile(`${GITHUB_WORKSPACE}/__Dockerfile`, `${remote}/__Dockerfile`)
+        .putFile(`${GITHUB_WORKSPACE}/Dockerfile`, `${remote}/Dockerfile`)
         .then(
           () => {
             console.log("The Directory thing is done");
