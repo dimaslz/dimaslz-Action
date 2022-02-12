@@ -66,27 +66,31 @@ export class Deploy {
   }
 
   async getContainersIDByAppName(name: string): Promise<string> {
+    console.log("getContainersIDByAppName [app]", name)
+
     return new Promise((resolve, reject) => {
-      const command = `docker ps --format="{{.Names}} {{.ID}}" \
-			| grep '${name}' \
-			| grep -Po '_(.*?)_'`;
+      const command = `docker ps --format="{{.Names}} {{.ID}}" | grep '${name}' | grep -Po '_(.*?)_'`;
 
       console.log("getContainersIDByAppName [command]", command)
       Deploy.ssh
         .execCommand(command)
         .then((result: any) => {
-          if (result.stderr) {
-            this.close();
-            reject(result.stderr);
-          }
+          // if (result.stderr) {
+          //   this.close();
+          //   reject(result.stderr);
+          // }
 
+          console.log("getContainersIDByAppName [result.stdout]", result.stdout)
           const r = result.stdout
-            .replace(/\n/gm, "")
+            .replace(/\n/gm, " ")
             .map((c: any) => c.replace(/^_|_$/g, ''))
 
           console.log("getContainersIDByAppName [r]", r)
 
           resolve(r);
+        }).catch((err: any) => {
+          this.close();
+          reject(err);
         });
     });
   }
