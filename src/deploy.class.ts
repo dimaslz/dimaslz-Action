@@ -20,7 +20,7 @@ const {
   INPUT_STATIC = "false",
   INPUT_WILDCARD_SSL = "false",
   INPUT_APP_HOST = "",
-  INPUT_APP_PORTS = "8080",
+  INPUT_APP_PORTS = "80",
 } = process.env;
 
 const toBoolean = (value: string | boolean) => {
