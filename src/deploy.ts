@@ -94,14 +94,14 @@ export const deploy = async (actionArgs: any) => {
   core.info("🚀 Deploy: setting docker config");
   await deployInstance.uploadDockerfile(APP_ID_DIR);
 
-  deployInstance.close();
+  core.info("🚀 Deploy: setting docker config");
+  await deployInstance.createAndUploadDockerComposeFile(APP_ID_DIR, {
+    imageName: NEW_IMAGE_NAME,
+    containerName: NEW_CONTAINER_NAME,
+    appName: ENV_APP_NAME,
+  });
 
-  // core.info("🚀 Deploy: setting docker config");
-  // await deployInstance.createAndUploadDockerComposeFile(APP_ID_DIR, {
-  //   imageName: NEW_IMAGE_NAME,
-  //   containerName: NEW_CONTAINER_NAME,
-  //   appName: ENV_APP_NAME,
-  // });
+  deployInstance.close();
 
   // core.info("🚀 Deploy: creating run image");
   // const NEW_IMAGE_ID = await deployInstance.buildImageByDockerCompose(
