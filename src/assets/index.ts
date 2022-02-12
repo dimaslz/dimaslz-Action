@@ -6,9 +6,9 @@ COPY ./files .
 
 RUN apk update
 
-%ENVIRONMENT_VARS%
-
 RUN yarn install
+
+%ENVIRONMENT_VARS%
 
 RUN NODE_ENV=production yarn build
 
