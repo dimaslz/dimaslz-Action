@@ -82,7 +82,7 @@ export class Deploy {
 
           console.log("getContainersIDByAppName [result.stdout]", result.stdout)
           const r = result.stdout
-            .replace(/\n/gm, " ")
+            .split(/\n/gm)
             .map((c: any) => c.replace(/^_|_$/g, ''))
 
           console.log("getContainersIDByAppName [r]", r)
