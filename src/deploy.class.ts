@@ -69,7 +69,7 @@ export class Deploy {
     console.log("getContainersIDByAppName [app]", name)
 
     return new Promise((resolve, reject) => {
-      const command = `docker ps --format="{{.Names}} {{.ID}}" | grep '${name}' | grep -Po '_(.*?)_'`;
+      const command = `docker ps --format="{{.Names}} {{.ID}}" | grep '${name}'`;
 
       console.log("getContainersIDByAppName [command]", command)
       Deploy.ssh
@@ -83,8 +83,19 @@ export class Deploy {
           console.log("getContainersIDByAppName [result.stdout]", result.stdout)
           const r = result.stdout
             .split(/\n/gm)
-            .map((c: any) => c.replace(/^_|_$/g, ''))
+            .map((c: any) => c.trim())
             .filter((i: string) => i)
+            .map(
+              (i: string) => {
+                const [containerName, id] = i.split(" ");
+                const [, repoId, name, timestamp, hash, env]: any
+                  = containerName.match(/^.*?(\d+)\.(.+?\.\w{2,})\.(\d+)\.([^\.]+)\.([^\._]+)/)
+
+                return {
+                  name, id, repoId, timestamp, hash, env
+                };
+              }
+            )
 
           console.log("getContainersIDByAppName [r]", r)
 
@@ -108,7 +119,21 @@ export class Deploy {
           //   reject(result.stderr);
           // }
 
-          resolve(result.stdout.split(/\n/gm).filter((i: string) => i));
+          const r = result.stdout
+            .split(/\n/gm)
+            .map((c: any) => c.trim())
+            .filter((i: string) => i)
+            .map(
+              (imageName: string) => {
+                const [, repoId, name, timestamp, hash, env]: any
+                  = imageName.match(/^.*?(\d+)\.(.+?\.\w{2,})\.(\d+)\.([^\.]+)\.([^\._]+)/)
+
+                return {
+                  name, repoId, timestamp, hash, env
+                };
+              }
+            )
+          resolve(r);
         }).catch((err: any) => {
           this.close();
           reject(err);
@@ -635,12 +660,11 @@ export class Deploy {
     });
   }
 
-  async stopContainerByName(appName: string[]): Promise<boolean> {
+  async stopContainerByName(appName: any[]): Promise<boolean> {
     console.log("stopContainerByName [appName]", appName)
     const stop = async (app: string) => {
       return new Promise((resolve, reject) => {
-        const command = `docker-compose -f docker-compose-files/${app}-docker-compose.yml down`;
-
+        const command = `cd ${app} && docker-compose down`;
         console.log("stopContainerByName [command]", command)
         Deploy.ssh.execCommand(command).then(() => {
           // if (result.stderr) {
@@ -668,22 +692,28 @@ export class Deploy {
 
     console.log("stopContainerByName [isSingle]", isSingle)
     if (isSingle) {
-      const exists = await this.containerExists(appName[0]);
+      const containerName = `${appName[0].repoId}.${appName[0].name}.${appName[0].timestamp}.${appName[0].hash}`
+      const exists = await this.containerExists(containerName);
 
       console.log("stopContainerByName [exists]", exists)
       if (exists) {
-        await stop(appName[0]);
-        core.info(`Container ${appName[0]} has been stopped.`);
+        const remoteDir = `/var/www/${appName[0].name}/${appName[0].repoId}.${appName[0].name}.${appName[0].timestamp}.${appName[0].hash}.${appName[0].env}`
+
+        await stop(remoteDir);
+
+        core.info(`Container ${remoteDir} has been stopped.`);
 
         return true;
       }
 
-      core.error(`Container ${appName[0]} doesn't exists.`);
+      core.error(`Container ${appName[0].name} doesn't exists.`);
     } else if (!isSingle) {
       for (const containerID of arrContainerIDs) {
-        const stopped = await stop(containerID);
+        const remoteDir = `/var/www/${containerID.name}/${containerID.repoId}.${containerID.name}.${containerID.timestamp}.${containerID.hash}.${containerID.env}`
+        const stopped = await stop(remoteDir);
+
         if (stopped) {
-          core.info(`Container ${containerID} has been stopped.`);
+          core.info(`Container ${containerID.name} has been stopped.`);
         }
       }
     }
@@ -740,7 +770,7 @@ export class Deploy {
     return false;
   }
 
-  async removeImagesByName(imageId: string[]): Promise<boolean> {
+  async removeImagesByName(imageId: any[]): Promise<boolean> {
     const remove = async (image: string) => {
       return new Promise((resolve, reject) => {
         const command = `docker rmi -f ${image}`;
@@ -765,23 +795,28 @@ export class Deploy {
     const arrImageIDs = imageId;
     const isSingle = arrImageIDs.length === 1;
     if (isSingle) {
-      const exists = await this.imageExists(imageId[0]);
+      const imageName = `${imageId[0].repoId}.${imageId[0].name}.${imageId[0].timestamp}.${imageId[0].hash}.${imageId[0].env}.image`;
+
+      const exists = await this.imageExists(imageName);
 
       if (exists) {
-        await remove(imageId[0]);
-        core.info(`Image ${imageId[0]} has been deleted.`);
+        await remove(imageName);
+        core.info(`Image ${imageName} has been deleted.`);
 
         return true;
       }
 
-      core.error(`Image ${imageId[0]} doesn't exists.`);
+      core.error(`Image ${imageName} doesn't exists.`);
     } else if (!isSingle) {
       for (const imageID of arrImageIDs) {
-        const removed = await remove(imageID);
+        const imageName = `${imageID.repoId}.${imageID.name}.${imageID.timestamp}.${imageID.hash}.${imageID.env}.image`;
+
+        const removed = await remove(imageName);
+
         if (removed) {
-          core.info(`Image ${imageID} has been deleted.`);
+          core.info(`Image ${imageName} has been deleted.`);
         } else {
-          core.error(`Image ${imageID} not deleted.`);
+          core.error(`Image ${imageName} not deleted.`);
         }
       }
     }

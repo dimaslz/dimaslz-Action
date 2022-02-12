@@ -44,14 +44,11 @@ export const deploy = async (actionArgs: any) => {
   const APP_URL = `${app_name}.${app_host}`;
 
   core.info(`🚀 Deploy: REPO_ID ${REPO_ID}`);
-  // const CONTAINER_IDs = await deployInstance.getContainersIDByAppName(
-  //   `${REPO_ID}.`
-  // );
-  const CONTAINER_NAMES: string[] = await deployInstance.getContainersIDByAppName(
+  const CONTAINER_IDs: any[] = await deployInstance.getContainersIDByAppName(
     `${REPO_ID}.`
   );
 
-  console.log("CONTAINER_NAMES", CONTAINER_NAMES)
+  console.log("CONTAINER_IDs", CONTAINER_IDs);
 
   const IMAGES_IDs: string[] = await deployInstance.getImagesIDByAppName(`${REPO_ID}.`);
 
@@ -135,7 +132,6 @@ export const deploy = async (actionArgs: any) => {
   });
 
   core.info(`ℹ️ Deploy: container info ${JSON.stringify(NEW_CONTAINER_INFO)}`);
-
   if (!NEW_CONTAINER_INFO.containerID) {
     core.error(
       "🚀 Deploy: some error has been occurred. Container is not running"
@@ -143,6 +139,7 @@ export const deploy = async (actionArgs: any) => {
     deployInstance.close();
     return;
   }
+
   let nginxConfig = "";
   core.info("🚀 Deploy: container created");
 
@@ -161,11 +158,12 @@ export const deploy = async (actionArgs: any) => {
     await deployInstance.restartNginx();
   }
 
-  // if (!!CONTAINER_IDs) {
-  if (CONTAINER_NAMES.length) {
-    core.info(`🚀 Deploy: Removing old containers... ${CONTAINER_NAMES.join(' ')}`);
-    await deployInstance.stopContainerByName(CONTAINER_NAMES);
+  if (CONTAINER_IDs.length) {
+    core.info(`🚀 Deploy: Removing old containers... ${CONTAINER_IDs.join(' ')}`);
+    await deployInstance.stopContainerByName(CONTAINER_IDs);
+  }
 
+  if (IMAGES_IDs.length) {
     core.info(`🚀 Deploy: Removing old images...`);
     await deployInstance.removeImagesByName(IMAGES_IDs);
   }
