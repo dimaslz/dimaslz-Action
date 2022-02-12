@@ -197,7 +197,7 @@ export class Deploy {
   }
 
   async buildImageByDockerCompose(remote: string, imageName: string) {
-    let command = `docker-compose -f ${remote}/docker-compose.yml build`;
+    let command = `cd ${remote} && docker-compose build --no-cache`;
     console.log("docker build command", command);
 
     return new Promise(async (resolve, reject) => {
@@ -226,7 +226,7 @@ export class Deploy {
   }
 
   async runContainerByDockerCompose(remote: string, { appName }: any) {
-    const command = `docker-compose run ${appName} `;
+    const command = `cd ${remote} && docker-compose up`;
 
     return new Promise(async (resolve, reject) => {
       try {
@@ -816,7 +816,7 @@ export class Deploy {
       //   envFileCmd = `--env-file ${appDir}/.__env`;
       // }
 
-      const command = `docker-compose -f ${remote}/docker-compose.yml run -d ${appName}`
+      const command = `cd ${remote} && docker-compose up -d`
 
       await Deploy.ssh.execCommand(command);
 
