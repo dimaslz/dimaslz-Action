@@ -251,7 +251,7 @@ export class Deploy {
     });
   }
 
-  async runContainerByDockerCompose(remote: string, { appName }: any) {
+  async runContainerByDockerCompose(remote: string) {
     const command = `cd ${remote} && docker-compose up`;
 
     return new Promise(async (resolve, reject) => {

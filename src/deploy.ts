@@ -104,7 +104,6 @@ export const deploy = async (actionArgs: any) => {
     APP_ID_DIR,
     NEW_IMAGE_NAME
   );
-
   core.info(`🚀 Deploy: IMAGE_ID > ${NEW_IMAGE_ID}`);
 
   // // core.info("🚀 Deploy: creating image");
@@ -114,6 +113,7 @@ export const deploy = async (actionArgs: any) => {
   // // );
 
   // let NEW_CONTAINER_INFO: any = null;
+
   if (!NEW_IMAGE_ID) {
     core.error("🚀 Deploy: no image created");
     deployInstance.close();
