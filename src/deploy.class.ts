@@ -254,8 +254,20 @@ export class Deploy {
     dockerComposeConfig = dockerComposeConfig
       .replace("%SERVICE_NAME%", appName)
       .replace("%IMAGE_NAME%", imageName)
-      .replace("%CONTAINER_NAME%", containerName)
-      .replace("%DOCKERFILE_FILE_CONTEXT%", remote);
+      .replace("%CONTAINER_NAME%", containerName);
+
+    if (INPUT_DOCKERFILE) {
+      const path = INPUT_DOCKERFILE.split("/") as any;
+      const dockerfileName = path.pop();
+
+      dockerComposeConfig = dockerComposeConfig
+        .replace("%DOCKERFILE_FILE_CONTEXT%", `./files/${path.join("/")}`)
+        .replace("%DOCKERFILE_FILE_NAME%", dockerfileName);
+    } else {
+      dockerComposeConfig = dockerComposeConfig
+      .replace("%DOCKERFILE_FILE_CONTEXT%", "./")
+      .replace("%DOCKERFILE_FILE_NAME%", "Dockerfile");
+    }
 
     const APP_PORTS = INPUT_APP_PORTS || "80"
     if (APP_PORTS) {
@@ -298,17 +310,6 @@ export class Deploy {
           .replace(/^.*?-\s\%ARGS\%/mg, ARGS_VARS)
       }
     }
-
-
-    dockerComposeConfig = dockerComposeConfig
-      .replace("%DOCKERFILE_FILE_NAME%", `Dockerfile`);
-    // if (INPUT_DOCKERFILE) {
-    //   dockerComposeConfig = dockerComposeConfig
-    //     .replace("%DOCKERFILE_FILE_NAME%", `Dockerfile`);
-    //   } else {
-    //     dockerComposeConfig = dockerComposeConfig
-    //     .replace("%DOCKERFILE_FILE_NAME%", `Dockerfile`);
-    // }
 
     fs.writeFileSync(
       `${GITHUB_WORKSPACE}/docker-compose.yml`,
