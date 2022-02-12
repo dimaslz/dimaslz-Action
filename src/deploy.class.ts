@@ -697,7 +697,7 @@ export class Deploy {
 
       console.log("stopContainerByName [exists]", exists)
       if (exists) {
-        const remoteDir = `/var/www/${appName[0].name}/${appName[0].repoId}.${appName[0].name}.${appName[0].timestamp}.${appName[0].hash}.${appName[0].env}`
+        const remoteDir = `/var/www/${appName[0].name}/${appName[0].timestamp}.${appName[0].hash}/${appName[0].env}`
 
         await stop(remoteDir);
 
@@ -709,7 +709,7 @@ export class Deploy {
       core.error(`Container ${appName[0].name} doesn't exists.`);
     } else if (!isSingle) {
       for (const containerID of arrContainerIDs) {
-        const remoteDir = `/var/www/${containerID.name}/${containerID.repoId}.${containerID.name}.${containerID.timestamp}.${containerID.hash}.${containerID.env}`
+        const remoteDir = `/var/www/${containerID.name}/${containerID.timestamp}.${containerID.hash}/${containerID.env}`
         const stopped = await stop(remoteDir);
 
         if (stopped) {
