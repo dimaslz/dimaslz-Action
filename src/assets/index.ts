@@ -2,7 +2,7 @@ export const nginx_static_dockerfile = `FROM node:16.14-alpine as builder
 
 WORKDIR /app
 
-COPY . .
+COPY ./files .
 
 RUN apk update
 
