@@ -604,10 +604,12 @@ export class Deploy {
   }
 
   async stopContainerByName(appName: string): Promise<boolean> {
+    console.log("stopContainerByName [appName]", appName)
     const stop = async (app: string) => {
       return new Promise((resolve, reject) => {
         const command = `docker-componse -f docker-compose-files/${app}-docker-compose.yml down`;
 
+        console.log("stopContainerByName [command]", command)
         Deploy.ssh.execCommand(command).then(() => {
           // if (result.stderr) {
           //   core.error(result.stderr);
@@ -631,9 +633,12 @@ export class Deploy {
 
     const arrContainerIDs = appName.split(" ");
     const isSingle = arrContainerIDs.length === 1;
+
+    console.log("stopContainerByName [isSingle]", isSingle)
     if (isSingle) {
       const exists = await this.containerExists(appName);
 
+      console.log("stopContainerByName [exists]", exists)
       if (exists) {
         await stop(appName);
         core.info(`Container ${appName} has been stopped.`);
