@@ -5,6 +5,7 @@
   "description": "Automate deploying websites in server with docker",
   "main": "dist/index.js",
   "scripts": {
+    "postbuild": "cpy src/assets/dummy.txt dist/assets",
     "build": "ncc build src/main.ts --no-cache -m",
     "test": "jest",
     "lint": "eslint src/**/*.ts"
@@ -40,6 +41,7 @@
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
     "@vercel/ncc": "^0.31.1",
+    "cpy-cli": "^3.1.1",
     "eslint": "^7.32.0",
     "eslint-plugin-jest": "^24.5.2",
     "tsc-watch": "4.5.0",

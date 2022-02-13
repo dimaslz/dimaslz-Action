@@ -17,6 +17,7 @@ const {
   GITHUB_REPOSITORY,
   INPUT_REPO_TOKEN,
   INPUT_RUN_COMMAND = 'yarn start',
+  INPUT_BUILD_COMMAND = 'yarn build',
   INPUT_STATIC = "false",
   INPUT_WILDCARD_SSL = "false",
   INPUT_APP_HOST = "",
@@ -665,7 +666,7 @@ export class Deploy {
     console.log("stopContainerByName [appName]", appName)
     const stop = async (app: string) => {
       return new Promise((resolve, reject) => {
-        const command = `cd ${app} && docker-compose down`;
+        const command = `cd ${app} && docker-compose down && docker-compose rm`;
         console.log("stopContainerByName [command]", command)
         Deploy.ssh.execCommand(command).then(() => {
           // if (result.stderr) {

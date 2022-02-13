@@ -11,6 +11,7 @@ RUN yarn install
 %ENVIRONMENT_VARS%
 
 RUN NODE_ENV=production yarn build
+RUN $BUILD_COMMAND
 
 FROM nginx:alpine
 
