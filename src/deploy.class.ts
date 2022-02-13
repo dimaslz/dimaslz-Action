@@ -17,7 +17,7 @@ const {
   GITHUB_REPOSITORY,
   INPUT_REPO_TOKEN,
   INPUT_RUN_COMMAND = 'yarn start',
-  INPUT_BUILD_COMMAND = 'yarn build',
+  INPUT_BUILD_COMMAND,
   INPUT_STATIC = "false",
   INPUT_WILDCARD_SSL = "false",
   INPUT_APP_HOST = "",
@@ -374,6 +374,12 @@ export class Deploy {
     let Dockerfile = toBoolean(INPUT_STATIC)
       ? nginx_static_dockerfile
       : node_server_dockerfile.replace("$COMMAND", INPUT_RUN_COMMAND)
+
+    if (INPUT_BUILD_COMMAND) {
+      Dockerfile = Dockerfile.replace("%BUILD_COMMAND%", INPUT_BUILD_COMMAND)
+    } else {
+      Dockerfile = Dockerfile.replace("%BUILD_COMMAND%", "NODE_ENV=production yarn build");
+    }
 
     let ENVIRONMENT_VARS = ""
     if (INPUT_ENV) {

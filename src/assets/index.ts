@@ -10,8 +10,7 @@ RUN yarn install
 
 %ENVIRONMENT_VARS%
 
-RUN NODE_ENV=production yarn build
-RUN $BUILD_COMMAND
+RUN %BUILD_COMMAND%
 
 FROM nginx:alpine
 
@@ -31,7 +30,7 @@ COPY . .
 
 RUN yarn install
 
-RUN yarn build
+RUN %BUILD_COMMAND%
 
 CMD $COMMAND
 `;
