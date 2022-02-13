@@ -373,7 +373,13 @@ export class Deploy {
     core.info("Creating default Dockerfile");
     let Dockerfile = toBoolean(INPUT_STATIC)
       ? nginx_static_dockerfile
-      : node_server_dockerfile.replace("$COMMAND", INPUT_RUN_COMMAND)
+      : node_server_dockerfile
+
+    if (INPUT_RUN_COMMAND) {
+      Dockerfile = Dockerfile.replace("%COMMAND%", JSON.stringify(INPUT_RUN_COMMAND.split(" ")))
+    } else {
+      Dockerfile = Dockerfile.replace("%COMMAND%", '["NODE_ENV=production", "yarn", "build"]');
+    }
 
     if (INPUT_BUILD_COMMAND) {
       Dockerfile = Dockerfile.replace("%BUILD_COMMAND%", INPUT_BUILD_COMMAND)
