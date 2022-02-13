@@ -10,7 +10,7 @@ const ssh = new NodeSSH();
 export const deploy = async (actionArgs: any) => {
   core.info("🚀 Deploy");
 
-  const txtFile = await fs.readFile("./assets/dummy.txt");
+  const txtFile = await fs.readFile(`${GITHUB_WORKSPACE}/assets/dummy.txt`);
   core.info(`ℹ️ ${txtFile}`)
 
 
