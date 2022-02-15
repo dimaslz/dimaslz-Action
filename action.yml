@@ -4,19 +4,19 @@ author: "Dimas López aka. dimaslz"
 inputs:
   server_ip:
     required: true
-    description: "example: 12.34.56.78"
+    description: "IP of your machine to deploy the applications, example: 12.34.56.78"
 
   user:
     required: true
-    description: "example: root"
+    description: "User to connect to your machine, example: root"
 
   ssh_private_key:
     required: true
-    description: "shh private key from your application secrets, to connect to the server"
+    description: "SSH private key from your application secrets, to connect to the server, example: `${{ secrets.CONNECTION_PRIVATE_KEY }}`"
 
   app_host:
     required: true
-    description: "application host, as for example: your-domain.com. Will create a config to serve the application in: ${app_name}.your-domain.com"
+    description: "application host, as for example: your-domain.com. Will create a config to serve the application in: `${app_name}.your-domain.com`"
 
   app_name:
     required: false
@@ -24,7 +24,7 @@ inputs:
 
   app_ports:
     required: false
-    description: "port where is serve the application"
+    description: "port where is serve the application, for example: 8080"
 
   source:
     required: false
@@ -52,7 +52,7 @@ inputs:
 
   wildcard_ssl:
     required: false
-    description: "by default 'false', set to 'true' if the final url of the project is *.*.domain.tld"
+    description: "by default 'false', set to 'true' if the final url of the project is *.*.domain.tld and, automatically, the action will create an SSL certificate by Certbot (not ready to use, experimental WIP)"
 
   env_name:
     required: false
