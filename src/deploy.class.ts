@@ -81,7 +81,6 @@ export class Deploy {
           //   reject(result.stderr);
           // }
 
-          console.log("getContainersIDByAppName [result.stdout]", result.stdout)
           const r = result.stdout
             .split(/\n/gm)
             .map((c: any) => c.trim())
@@ -284,8 +283,8 @@ export class Deploy {
       .replace("%CONTAINER_NAME%", containerName);
 
     if (INPUT_DOCKERFILE) {
-      const path = INPUT_DOCKERFILE.split("/") as any;
-      const dockerfileName = path.pop();
+      let path = INPUT_DOCKERFILE === "./" ? "" : INPUT_DOCKERFILE.split("/") as any;
+      const dockerfileName = path.length ? path.pop() || "Dockerfile" : "Dockerfile";
 
       dockerComposeConfig = dockerComposeConfig
         .replace("%DOCKERFILE_FILE_CONTEXT%", `./files/${path.join("/")}`)
