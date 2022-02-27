@@ -29,7 +29,7 @@ RUN apk update
 
 WORKDIR /app
 
-COPY . .
+COPY ./files .
 
 RUN yarn install
 
