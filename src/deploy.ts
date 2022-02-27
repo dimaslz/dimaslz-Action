@@ -4,8 +4,6 @@ import { Deploy } from "./deploy.class";
 
 const { GITHUB_WORKSPACE, GITHUB_SHA } = process.env;
 
-const ssh = new NodeSSH();
-
 const actionLabel = "[🚀 Deploy]";
 const log = {
   info: (text: string) => core.info(`${actionLabel}: ${text}`),
@@ -29,160 +27,164 @@ export const deploy = async (actionArgs: any) => {
   const { INPUT_APP_NAME } = process.env;
   log.info(`Aplication name > ℹ️ ${INPUT_APP_NAME}`)
 
-  await ssh.connect({
-    host,
-    username,
-    privateKey,
-  });
+  log.info(`Aplication name > ℹ️ ${actionArgs}`)
+  return
+  // const ssh = new NodeSSH();
 
-  log.info("🔌 connecting by SSH");
-  const deployInstance = Deploy.create(ssh);
+  // await ssh.connect({
+  //   host,
+  //   username,
+  //   privateKey,
+  // });
 
-  const REPO_ID = await deployInstance.getRepositoryID();
-  if (!REPO_ID) {
-    log.error(
-      "This repository is private, please use repo_token with value ${{ secrets.GITHUB_TOKEN }}"
-    );
-    deployInstance.close();
-    return;
-  }
+  // log.info("🔌 connecting by SSH");
+  // const deployInstance = Deploy.create(ssh);
 
-  const ENV = env_name;
-  log.info(`environment > ${ENV}`);
+  // const REPO_ID = await deployInstance.getRepositoryID();
+  // if (!REPO_ID) {
+  //   log.error(
+  //     "This repository is private, please use repo_token with value ${{ secrets.GITHUB_TOKEN }}"
+  //   );
+  //   deployInstance.close();
+  //   return;
+  // }
 
-  const APP_URL = `${app_name}.${app_host}`;
-  log.info(`application url - ${APP_URL}`);
+  // const ENV = env_name;
+  // log.info(`environment > ${ENV}`);
 
-  log.info(`REPO_ID ${REPO_ID}`);
+  // const APP_URL = `${app_name}.${app_host}`;
+  // log.info(`application url - ${APP_URL}`);
 
-  // getting current containers to remove once the new service are running
-  const CONTAINER_IDs: any[] = await deployInstance.getContainersIDByAppName(
-    `${REPO_ID}.`
-  );
+  // log.info(`REPO_ID ${REPO_ID}`);
 
-  // getting current images to remove once the new service are running
-  const IMAGES_IDs: string[] = await deployInstance.getImagesIDByAppName(`${REPO_ID}.`);
+  // // getting current containers to remove once the new service are running
+  // const CONTAINER_IDs: any[] = await deployInstance.getContainersIDByAppName(
+  //   `${REPO_ID}.`
+  // );
 
-  // base name of instances
-  const ENV_APP_NAME = `${REPO_ID}.${APP_URL}.${TIMESTAMP}.${GITHUB_SHA}.${ENV}`;
-  // application id for this deploy
-  const APP_ID = `${TIMESTAMP}.${GITHUB_SHA}`;
-  // application folder where we will store all files
-  const APP_DIR = `/var/www/${APP_URL}/${ENV}`;
+  // // getting current images to remove once the new service are running
+  // const IMAGES_IDs: string[] = await deployInstance.getImagesIDByAppName(`${REPO_ID}.`);
 
-  const NEW_CONTAINER_NAME = `${ENV_APP_NAME}.container`;
-  const NEW_IMAGE_NAME = `${ENV_APP_NAME}.image`;
-  const NEW_VOLUME_NAME = `${APP_URL}.volume`;
+  // // base name of instances
+  // const ENV_APP_NAME = `${REPO_ID}.${APP_URL}.${TIMESTAMP}.${GITHUB_SHA}.${ENV}`;
+  // // application id for this deploy
+  // const APP_ID = `${TIMESTAMP}.${GITHUB_SHA}`;
+  // // application folder where we will store all files
+  // const APP_DIR = `/var/www/${APP_URL}/${ENV}`;
 
-  // create application directory
-  log.info("application directory");
-  const dirExists = await deployInstance.dirExists(APP_DIR);
-  if (!dirExists) {
-    await deployInstance.createFolder(APP_DIR);
-  }
+  // const NEW_CONTAINER_NAME = `${ENV_APP_NAME}.container`;
+  // const NEW_IMAGE_NAME = `${ENV_APP_NAME}.image`;
+  // const NEW_VOLUME_NAME = `${APP_URL}.volume`;
 
-  log.info("application version directory");
-  // one folder per each deploy if it doesn´t exists (after should be cleaned)
-  const APP_ID_DIR = `${APP_DIR}/${APP_ID}`;
-  const dirVersionExists = await deployInstance.dirExists(APP_ID_DIR);
-  if (!dirVersionExists) {
-    await deployInstance.createFolder(APP_ID_DIR);
-  }
+  // // create application directory
+  // log.info("application directory");
+  // const dirExists = await deployInstance.dirExists(APP_DIR);
+  // if (!dirExists) {
+  //   await deployInstance.createFolder(APP_DIR);
+  // }
 
-  // create directory of files if it doesn´t exists
-  const APP_FILES_DIR = `${APP_ID_DIR}/files`;
-  const dirFilesExists = await deployInstance.dirExists(APP_FILES_DIR);
-  if (!dirFilesExists) {
-    await deployInstance.createFolder(APP_FILES_DIR);
-  }
+  // log.info("application version directory");
+  // // one folder per each deploy if it doesn´t exists (after should be cleaned)
+  // const APP_ID_DIR = `${APP_DIR}/${APP_ID}`;
+  // const dirVersionExists = await deployInstance.dirExists(APP_ID_DIR);
+  // if (!dirVersionExists) {
+  //   await deployInstance.createFolder(APP_ID_DIR);
+  // }
 
-  log.info("uploading files");
-  // let's upload files to /files of the application files dir
-  await deployInstance.uploadFiles(`${GITHUB_WORKSPACE}`, APP_FILES_DIR);
+  // // create directory of files if it doesn´t exists
+  // const APP_FILES_DIR = `${APP_ID_DIR}/files`;
+  // const dirFilesExists = await deployInstance.dirExists(APP_FILES_DIR);
+  // if (!dirFilesExists) {
+  //   await deployInstance.createFolder(APP_FILES_DIR);
+  // }
 
-  log.info("setting dockerfile to use");
-  await deployInstance.uploadDockerfile(APP_ID_DIR);
+  // log.info("uploading files");
+  // // let's upload files to /files of the application files dir
+  // await deployInstance.uploadFiles(`${GITHUB_WORKSPACE}`, APP_FILES_DIR);
 
-  log.info("prepare compose to build dockerfile");
-  await deployInstance.createAndUploadDockerComposeFile(APP_ID_DIR, {
-    imageName: NEW_IMAGE_NAME,
-    containerName: NEW_CONTAINER_NAME,
-    appName: ENV_APP_NAME,
-  });
+  // log.info("setting dockerfile to use");
+  // await deployInstance.uploadDockerfile(APP_ID_DIR);
 
-  log.info("build image");
-  const NEW_IMAGE_ID = await deployInstance.buildImageByDockerCompose(
-    APP_ID_DIR,
-    NEW_IMAGE_NAME
-  );
-  log.info(`IMAGE_ID > ${NEW_IMAGE_ID}`);
+  // log.info("prepare compose to build dockerfile");
+  // await deployInstance.createAndUploadDockerComposeFile(APP_ID_DIR, {
+  //   imageName: NEW_IMAGE_NAME,
+  //   containerName: NEW_CONTAINER_NAME,
+  //   appName: ENV_APP_NAME,
+  // });
 
-  // if the image could not be created, return an error and stop the deploy
-  if (!NEW_IMAGE_ID) {
-    log.error("no image created");
-    deployInstance.close();
-    return;
-  }
+  // log.info("build image");
+  // const NEW_IMAGE_ID = await deployInstance.buildImageByDockerCompose(
+  //   APP_ID_DIR,
+  //   NEW_IMAGE_NAME
+  // );
+  // log.info(`IMAGE_ID > ${NEW_IMAGE_ID}`);
 
-  // create volume to do not lost the data of the application
-  log.info("creating volume");
-  const volumeExists = await deployInstance.volumeExists(NEW_VOLUME_NAME);
-  if (!volumeExists) {
-    await deployInstance.createVolume(NEW_VOLUME_NAME);
-  }
+  // // if the image could not be created, return an error and stop the deploy
+  // if (!NEW_IMAGE_ID) {
+  //   log.error("no image created");
+  //   deployInstance.close();
+  //   return;
+  // }
 
-  log.info(`running container ${NEW_CONTAINER_NAME}`);
-  const NEW_CONTAINER_INFO: any = await deployInstance.runContainer(APP_ID_DIR, {
-    container: NEW_CONTAINER_NAME,
-    appName: ENV_APP_NAME,
-  });
+  // // create volume to do not lost the data of the application
+  // log.info("creating volume");
+  // const volumeExists = await deployInstance.volumeExists(NEW_VOLUME_NAME);
+  // if (!volumeExists) {
+  //   await deployInstance.createVolume(NEW_VOLUME_NAME);
+  // }
 
-  // if the container could not be created, return an error and stop the deploy
-  if (!NEW_CONTAINER_INFO.containerID) {
-    log.error(
-      "some error has been occurred. Container is not running 😒"
-    );
-    deployInstance.close();
-    return;
-  }
-  log.info("container created succesfully! 😄");
+  // log.info(`running container ${NEW_CONTAINER_NAME}`);
+  // const NEW_CONTAINER_INFO: any = await deployInstance.runContainer(APP_ID_DIR, {
+  //   container: NEW_CONTAINER_NAME,
+  //   appName: ENV_APP_NAME,
+  // });
 
-  // creating nginx config about the application requirements
-  log.info("setting nginx config");
-  let nginxConfig = "";
-  nginxConfig = await deployInstance.getNginxConfig(
-    `${app_name}.${app_host}`,
-    `http://${NEW_CONTAINER_INFO.containerIP}:${NEW_CONTAINER_INFO.containerPort}`
-  );
+  // // if the container could not be created, return an error and stop the deploy
+  // if (!NEW_CONTAINER_INFO.containerID) {
+  //   log.error(
+  //     "some error has been occurred. Container is not running 😒"
+  //   );
+  //   deployInstance.close();
+  //   return;
+  // }
+  // log.info("container created succesfully! 😄");
 
-  if (nginxConfig) {
-    log.info("test and restarting NGINX");
-    await deployInstance.uploadNginxConfig(
-      nginxConfig,
-      `/etc/nginx/sites-enabled/${APP_URL}`
-    );
-    await deployInstance.restartNginx();
-  }
-  log.info(`✅ your application already is running! 🏃‍♂️💨, now try to visit your site https://${APP_URL} in your browser`);
-  log.info(`It is not working? be sure that you domain has the correct DNS setup`);
+  // // creating nginx config about the application requirements
+  // log.info("setting nginx config");
+  // let nginxConfig = "";
+  // nginxConfig = await deployInstance.getNginxConfig(
+  //   `${app_name}.${app_host}`,
+  //   `http://${NEW_CONTAINER_INFO.containerIP}:${NEW_CONTAINER_INFO.containerPort}`
+  // );
 
-  if (CONTAINER_IDs.length) {
-    log.info(`🧹 removing unnecessary old containers...`);
-    await deployInstance.stopContainerByName(CONTAINER_IDs);
-  }
+  // if (nginxConfig) {
+  //   log.info("test and restarting NGINX");
+  //   await deployInstance.uploadNginxConfig(
+  //     nginxConfig,
+  //     `/etc/nginx/sites-enabled/${APP_URL}`
+  //   );
+  //   await deployInstance.restartNginx();
+  // }
+  // log.info(`✅ your application already is running! 🏃‍♂️💨, now try to visit your site https://${APP_URL} in your browser`);
+  // log.info(`It is not working? be sure that you domain has the correct DNS setup`);
 
-  if (IMAGES_IDs.length) {
-    log.info(`🧹 removing unnecessary old images...`);
-    await deployInstance.removeImagesByName(IMAGES_IDs);
-  }
+  // if (CONTAINER_IDs.length) {
+  //   log.info(`🧹 removing unnecessary old containers...`);
+  //   await deployInstance.stopContainerByName(CONTAINER_IDs);
+  // }
 
-  // TODO: Remove old files
-  // // core.info("🚀 Deploy: delete files");
-  // // await deployInstance.deleteFiles(APP_DIR);
+  // if (IMAGES_IDs.length) {
+  //   log.info(`🧹 removing unnecessary old images...`);
+  //   await deployInstance.removeImagesByName(IMAGES_IDs);
+  // }
 
-  deployInstance.close();
+  // // TODO: Remove old files
+  // // // core.info("🚀 Deploy: delete files");
+  // // // await deployInstance.deleteFiles(APP_DIR);
 
-  log.info(`DONE 👏`);
+  // deployInstance.close();
+
+  // log.info(`DONE 👏`);
 };
 
 export default deploy;
