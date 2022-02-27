@@ -12,7 +12,7 @@ inputs:
 
   ssh_private_key:
     required: true
-    description: 'SSH private key from your application secrets, to connect to the server, example: "${{ secrets.CONNECTION_PRIVATE_KEY }}"'
+    description: 'SSH private key from your application secrets, to connect to the server, example: "secrets.CONNECTION_PRIVATE_KEY"'
 
   app_host:
     required: true
