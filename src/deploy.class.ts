@@ -285,9 +285,10 @@ export class Deploy {
     if (INPUT_DOCKERFILE) {
       let path = INPUT_DOCKERFILE === "./" ? "" : INPUT_DOCKERFILE.split("/") as any;
       const dockerfileName = path.length ? path.pop() || "Dockerfile" : "Dockerfile";
+      path = path.length ? `/${path.join("/")}` : ""
 
       dockerComposeConfig = dockerComposeConfig
-        .replace("%DOCKERFILE_FILE_CONTEXT%", `./files/${path.join("/")}`)
+        .replace("%DOCKERFILE_FILE_CONTEXT%", `./files${path}`)
         .replace("%DOCKERFILE_FILE_NAME%", dockerfileName);
     } else {
       dockerComposeConfig = dockerComposeConfig
