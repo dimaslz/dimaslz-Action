@@ -3,8 +3,11 @@ export const nginx_static_dockerfile = `FROM node:16.14-alpine as builder
 WORKDIR /app
 
 COPY ./files .
+COPY yarn.lock ./files
 
 RUN apk update
+RUN apk add make py3-pip
+RUN apk add --no-cache --virtual .gyp make g++
 
 RUN yarn install
 
