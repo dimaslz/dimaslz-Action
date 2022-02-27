@@ -35,7 +35,7 @@ RUN yarn install
 
 RUN %BUILD_COMMAND%
 
-CMD $COMMAND
+CMD %COMMAND%
 `;
 
 const nginx_common_config = `server_name %SERVER_NAME%;
