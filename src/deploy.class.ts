@@ -81,6 +81,7 @@ export class Deploy {
           //   reject(result.stderr);
           // }
 
+          console.log("getContainersIDByAppName [result.stdout]", result.stdout)
           const r = result.stdout
             .split(/\n/gm)
             .map((c: any) => c.trim())
@@ -378,7 +379,7 @@ export class Deploy {
     if (INPUT_RUN_COMMAND) {
       Dockerfile = Dockerfile.replace("%COMMAND%", JSON.stringify(INPUT_RUN_COMMAND.split(" ")))
     } else {
-      Dockerfile = Dockerfile.replace("%COMMAND%", '["NODE_ENV=production", "yarn", "build"]');
+      Dockerfile = Dockerfile.replace("%COMMAND%", '["yarn", "start"]');
     }
 
     if (INPUT_BUILD_COMMAND) {
