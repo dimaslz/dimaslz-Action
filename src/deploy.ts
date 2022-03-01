@@ -29,7 +29,8 @@ export const deploy = async (actionArgs: any) => {
   const { INPUT_APP_NAME } = process.env;
 
   if (!regexIp4.test(serverIp)) {
-    log.error("Please, check your 'server_ip' parammeter");
+    // log.error("Please, check your 'server_ip' parammeter");
+    core.setFailed("Please, check your 'server_ip' parammeter");
     return;
   }
 
