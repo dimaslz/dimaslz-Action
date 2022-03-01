@@ -30,7 +30,7 @@ export const deploy = async (actionArgs: any) => {
 
     return;
   }
-  log.info("server_ip valid 👍");
+  log.info("Server IP by server_ip parameter is valid 👍");
 
   log.info("validating application name from app_name...");
   let applicationName: string = INPUT_APP_NAME;
@@ -44,14 +44,16 @@ export const deploy = async (actionArgs: any) => {
 
     return;
   }
-  log.info("app_name valid 👍");
+  log.info("Application name by app_name parammeter is valid 👍");
 
+  log.info("validating application host from app_host...");
   const domainRegex = /^(?!-)[A-Za-z0-9-]+\.[A-Za-z]{2,10}$/;
   if (domainRegex.test(INPUT_APP_HOST)) {
     core.setFailed("Application host parammeter 'app_host' should be valid. Check the doc https://fito-deploy.dimaslz.dev/docs/...");
 
     return;
   }
+  log.info("Application host by app_host parammeter is valid 👍");
 
   return;
   // const ssh = new NodeSSH();
