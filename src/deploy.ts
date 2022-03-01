@@ -11,13 +11,15 @@ const log = {
   warning: (text: string) => core.warning(`${actionLabel}: ${text}`),
 }
 
+const regexIp4 = /(\b25[0-5]|\b2[0-4][0-9]|\b[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}/;
+
 export const deploy = async (actionArgs: any) => {
   log.info("starting...");
 
   const TIMESTAMP = new Date().getTime();
 
   const {
-    server_ip: host,
+    server_ip: serverIp,
     user: username,
     ssh_private_key: privateKey,
     app_name,
@@ -25,14 +27,20 @@ export const deploy = async (actionArgs: any) => {
     env_name,
   } = actionArgs;
   const { INPUT_APP_NAME } = process.env;
+
+  if (!regexIp4.test(serverIp)) {
+    log.error("Please, check your 'server_ip' parammeter");
+    return;
+  }
+
   log.info(`Aplication name > ℹ️ ${INPUT_APP_NAME}`)
 
   log.info(`Aplication name > ℹ️ ${actionArgs}`)
-  return
+  return;
   // const ssh = new NodeSSH();
 
   // await ssh.connect({
-  //   host,
+  //   host: serverIp,
   //   username,
   //   privateKey,
   // });
