@@ -22,6 +22,8 @@ export const deploy = async (actionArgs: any) => {
     INPUT_APP_NAME = "",
     INPUT_SERVER_IP = "",
     INPUT_APP_HOST = "",
+    INPUT_USER = "",
+    INPUT_SSH_PRIVATE_KEY = "",
   } = process.env;
 
   log.info("validating server ip from server_ip...");
@@ -55,26 +57,32 @@ export const deploy = async (actionArgs: any) => {
   }
   log.info("Application host by app_host parammeter is valid 👍");
 
+  const ssh = new NodeSSH();
+
+  await ssh.connect({
+    host: INPUT_SERVER_IP,
+    username: INPUT_USER,
+    privateKey: INPUT_SSH_PRIVATE_KEY,
+  });
+
+  log.info("🔌 connecting by SSH");
+  const deployInstance = Deploy.create(ssh);
+
+  const REPO_ID = await deployInstance.getRepositoryID();
+
+  console.log("REPO_ID", REPO_ID);
+  if (!REPO_ID) {
+    log.error(
+      "This repository is private, please use repo_token with value ${{ secrets.GITHUB_TOKEN }}"
+    );
+    deployInstance.close();
+
+    return;
+  }
+
+  deployInstance.close();
+
   return;
-  // const ssh = new NodeSSH();
-
-  // await ssh.connect({
-  //   host: serverIp,
-  //   username,
-  //   privateKey,
-  // });
-
-  // log.info("🔌 connecting by SSH");
-  // const deployInstance = Deploy.create(ssh);
-
-  // const REPO_ID = await deployInstance.getRepositoryID();
-  // if (!REPO_ID) {
-  //   log.error(
-  //     "This repository is private, please use repo_token with value ${{ secrets.GITHUB_TOKEN }}"
-  //   );
-  //   deployInstance.close();
-  //   return;
-  // }
 
   // const ENV = env_name;
   // log.info(`environment > ${ENV}`);
