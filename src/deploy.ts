@@ -29,12 +29,15 @@ export const deploy = async (actionArgs: any) => {
     INPUT_SERVER_IP = "",
   } = process.env;
 
+  log.info("validating server ip from server_ip...");
   if (!regexIp4.test(INPUT_SERVER_IP)) {
     core.setFailed("Please, check your 'server_ip' parammeter");
 
     return;
   }
+  log.info("server_ip valid 👍");
 
+  log.info("validating application name from app_name...");
   let applicationName: string = INPUT_APP_NAME;
   if (!INPUT_APP_NAME) {
     applicationName = "repo-name-as-default";
@@ -46,6 +49,7 @@ export const deploy = async (actionArgs: any) => {
 
     return;
   }
+  log.info("app_name valid 👍");
 
   return;
   // const ssh = new NodeSSH();
