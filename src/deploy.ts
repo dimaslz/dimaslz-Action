@@ -22,7 +22,7 @@ export const deploy = async (actionArgs: any) => {
     server_ip: serverIp,
     user: username,
     ssh_private_key: privateKey,
-    app_name,
+    app_name: appName,
     app_host,
     env_name,
   } = actionArgs;
@@ -34,9 +34,16 @@ export const deploy = async (actionArgs: any) => {
     return;
   }
 
-  log.info(`Aplication name > ℹ️ ${INPUT_APP_NAME}`)
+  let applicationName = appName;
+  if (!INPUT_APP_NAME) {
+    applicationName = "repo-name-as-default";
+  }
 
-  log.info(`Aplication name > ℹ️ ${actionArgs}`)
+  log.info(`Aplication applicationName > ℹ️ ${applicationName}`)
+  log.info(`Aplication app_name > ℹ️ ${appName}`)
+  log.info(`Aplication INPUT_APP_NAME > ℹ️ ${INPUT_APP_NAME}`)
+
+  log.info(`Aplication name > ℹ️ ${JSON.stringify(actionArgs)}`)
   return;
   // const ssh = new NodeSSH();
 
