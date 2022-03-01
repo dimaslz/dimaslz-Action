@@ -19,31 +19,34 @@ export const deploy = async (actionArgs: any) => {
   const TIMESTAMP = new Date().getTime();
 
   const {
-    server_ip: serverIp,
     user: username,
     ssh_private_key: privateKey,
-    app_name: appName,
     app_host,
     env_name,
   } = actionArgs;
-  const { INPUT_APP_NAME } = process.env;
+  const {
+    INPUT_APP_NAME = "",
+    INPUT_SERVER_IP = "",
+  } = process.env;
 
-  if (!regexIp4.test(serverIp)) {
-    // log.error("Please, check your 'server_ip' parammeter");
+  if (!regexIp4.test(INPUT_SERVER_IP)) {
     core.setFailed("Please, check your 'server_ip' parammeter");
+
     return;
   }
 
-  let applicationName = appName;
+  let applicationName: string = INPUT_APP_NAME;
   if (!INPUT_APP_NAME) {
     applicationName = "repo-name-as-default";
   }
 
-  log.info(`Aplication applicationName > ℹ️ ${applicationName}`)
-  log.info(`Aplication app_name > ℹ️ ${appName}`)
-  log.info(`Aplication INPUT_APP_NAME > ℹ️ ${INPUT_APP_NAME}`)
+  const applicationNameRegex = /^[a-zA-Z0-9-]+$/
+  if (!applicationNameRegex.test(applicationName)) {
+    core.setFailed("Application name by parammeter 'app_name' should be valid. Check the doc https://fito-deploy.dimaslz.dev/docs/...");
 
-  log.info(`Aplication name > ℹ️ ${JSON.stringify(actionArgs)}`)
+    return;
+  }
+
   return;
   // const ssh = new NodeSSH();
 
