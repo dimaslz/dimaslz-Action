@@ -19,14 +19,9 @@ export const deploy = async (actionArgs: any) => {
   const TIMESTAMP = new Date().getTime();
 
   const {
-    user: username,
-    ssh_private_key: privateKey,
-    app_host,
-    env_name,
-  } = actionArgs;
-  const {
     INPUT_APP_NAME = "",
     INPUT_SERVER_IP = "",
+    INPUT_APP_HOST = "",
   } = process.env;
 
   log.info("validating server ip from server_ip...");
@@ -50,6 +45,13 @@ export const deploy = async (actionArgs: any) => {
     return;
   }
   log.info("app_name valid 👍");
+
+  const domainRegex = /^(?!-)[A-Za-z0-9-]+\.[A-Za-z]{2,10}$/;
+  if (domainRegex.test(INPUT_APP_HOST)) {
+    core.setFailed("Application host parammeter 'app_host' should be valid. Check the doc https://fito-deploy.dimaslz.dev/docs/...");
+
+    return;
+  }
 
   return;
   // const ssh = new NodeSSH();
