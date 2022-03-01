@@ -15,7 +15,7 @@ async function run() {
       dockerfile: core.getInput("dockerfile") || null,
       env: core.getInput("env") || "",
       env_name: core.getInput("env_name") || "production",
-      static: core.getBooleanInput("static") || false,
+      static: core.getInput("static") || false,
       run_command: core.getInput("run_command") || null,
       build_command: core.getInput("build_command") || null,
       repo_token: core.getInput("repo_token") || null,
