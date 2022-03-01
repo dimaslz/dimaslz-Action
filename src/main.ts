@@ -10,7 +10,7 @@ async function run() {
       ssh_private_key: core.getInput("ssh_private_key", { required: true }),
       app_host: core.getInput("app_host", { required: true }),
 
-      app_name: core.getInput("app_name", { required: true }),
+      app_name: core.getInput("app_name"),
       source: core.getInput("source") || "dist",
       dockerfile: core.getInput("dockerfile") || null,
       env: core.getInput("env") || "",
