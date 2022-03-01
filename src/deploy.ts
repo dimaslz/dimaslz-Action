@@ -48,7 +48,7 @@ export const deploy = async (actionArgs: any) => {
 
   log.info("validating application host from app_host...");
   const domainRegex = /^(?!-)[A-Za-z0-9-]+\.[A-Za-z]{2,10}$/;
-  if (domainRegex.test(INPUT_APP_HOST)) {
+  if (!domainRegex.test(INPUT_APP_HOST)) {
     core.setFailed("Application host parammeter 'app_host' should be valid. Check the doc https://fito-deploy.dimaslz.dev/docs/...");
 
     return;
