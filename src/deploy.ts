@@ -2,7 +2,7 @@ import * as core from "@actions/core";
 import { NodeSSH } from "node-ssh";
 import { Deploy } from "./deploy.class";
 
-const { GITHUB_WORKSPACE, GITHUB_SHA } = process.env;
+const { GITHUB_WORKSPACE, GITHUB_SHA = "", GITHUB_REPOSITORY } = process.env;
 
 const actionLabel = "[🚀 Deploy]";
 const log = {
@@ -24,7 +24,13 @@ export const deploy = async (actionArgs: any) => {
     INPUT_APP_HOST = "",
     INPUT_USER = "",
     INPUT_SSH_PRIVATE_KEY = "",
+    INPUT_ENV_NAME = "",
   } = process.env;
+
+  /**
+   * CHECK MAIN MANDATORY PARAMMETERS
+   * server_ip, user, app_host, ssh_private_key,app
+   */
 
   log.info("validating server ip from server_ip...");
   if (!regexIp4.test(INPUT_SERVER_IP)) {
@@ -37,7 +43,8 @@ export const deploy = async (actionArgs: any) => {
   log.info("validating application name from app_name...");
   let applicationName: string = INPUT_APP_NAME;
   if (!INPUT_APP_NAME) {
-    applicationName = "repo-name-as-default";
+    const [, defaultAppName] = GITHUB_REPOSITORY?.split("/") || [];
+    applicationName = defaultAppName;
   }
 
   const applicationNameRegex = /^[a-zA-Z0-9-]+$/
@@ -57,6 +64,10 @@ export const deploy = async (actionArgs: any) => {
   }
   log.info("Application host by app_host parammeter is valid 👍");
 
+
+  /**
+   * CONNNECT BY SSH
+   */
   const ssh = new NodeSSH();
 
   await ssh.connect({
@@ -69,48 +80,71 @@ export const deploy = async (actionArgs: any) => {
   const deployInstance = Deploy.create(ssh);
 
   const REPO_ID = await deployInstance.getRepositoryID();
-
-  console.log("REPO_ID", REPO_ID);
   if (!REPO_ID) {
-    log.error(
+    core.setFailed(
       "This repository is private, please use repo_token with value ${{ secrets.GITHUB_TOKEN }}"
     );
     deployInstance.close();
 
     return;
   }
+  log.info(`REPO_ID: ${REPO_ID}`);
+
+  const ENV = INPUT_ENV_NAME;
+  log.info(`environment > ${ENV}`);
+
+  const APP_URL = `${applicationName}.${INPUT_APP_HOST}`;
+  // log.info(`application url - ${APP_URL}`);
+
+  // getting current containers to remove once the new service are running
+  log.info("getting current containers ID's related to the application name");
+  const CONTAINER_IDs: any[] = await deployInstance.getContainersIDByAppName(
+    `${REPO_ID}.`
+  );
+
+  if (CONTAINER_IDs.length) {
+    log.info(`CONTAINER_IDs: ${CONTAINER_IDs.map(c => c.id).join(", ")}`);
+  } else {
+    log.info("No containers related to this application");
+  }
+
+  // getting current images to remove once the new service are running
+  log.info("getting current images ID's related to the application name");
+  const IMAGES_IDs: any[] = await deployInstance.getImagesIDByAppName(`${REPO_ID}.`);
+
+  if (IMAGES_IDs.length) {
+    log.info(`IMAGES_IDs: ${IMAGES_IDs.map(c => c.id).join(", ")}`);
+  } else {
+    log.info("No images related to this application");
+  }
+
+  /**
+   * SETUP USEFUL VARIABLES TO WORK
+   */
+  // base name of instances
+  const shortSHA = GITHUB_SHA.slice(0, 8);
+  const ENV_APP_NAME = `${REPO_ID}.${APP_URL}.${TIMESTAMP}.${shortSHA}.${ENV}`;
+  // application id for this deploy
+  const APP_ID = `${TIMESTAMP}.${shortSHA}`;
+  // application folder where we will store all files
+  const APP_DIR = `/var/www/${APP_URL}/${ENV}`;
+
+  const NEW_CONTAINER_NAME = `${ENV_APP_NAME}.container`;
+  const NEW_IMAGE_NAME = `${ENV_APP_NAME}.image`;
+  const NEW_VOLUME_NAME = `${APP_URL}.volume`;
+
+  console.log("DEBUG", {
+    ENV_APP_NAME,
+    APP_ID,
+    APP_DIR,
+    NEW_CONTAINER_NAME,
+    NEW_IMAGE_NAME,
+    NEW_VOLUME_NAME,
+  });
 
   deployInstance.close();
 
   return;
-
-  // const ENV = env_name;
-  // log.info(`environment > ${ENV}`);
-
-  // const APP_URL = `${app_name}.${app_host}`;
-  // log.info(`application url - ${APP_URL}`);
-
-  // log.info(`REPO_ID ${REPO_ID}`);
-
-  // // getting current containers to remove once the new service are running
-  // const CONTAINER_IDs: any[] = await deployInstance.getContainersIDByAppName(
-  //   `${REPO_ID}.`
-  // );
-
-  // // getting current images to remove once the new service are running
-  // const IMAGES_IDs: string[] = await deployInstance.getImagesIDByAppName(`${REPO_ID}.`);
-
-  // // base name of instances
-  // const ENV_APP_NAME = `${REPO_ID}.${APP_URL}.${TIMESTAMP}.${GITHUB_SHA}.${ENV}`;
-  // // application id for this deploy
-  // const APP_ID = `${TIMESTAMP}.${GITHUB_SHA}`;
-  // // application folder where we will store all files
-  // const APP_DIR = `/var/www/${APP_URL}/${ENV}`;
-
-  // const NEW_CONTAINER_NAME = `${ENV_APP_NAME}.container`;
-  // const NEW_IMAGE_NAME = `${ENV_APP_NAME}.image`;
-  // const NEW_VOLUME_NAME = `${APP_URL}.volume`;
-
   // // create application directory
   // log.info("application directory");
   // const dirExists = await deployInstance.dirExists(APP_DIR);
