@@ -242,9 +242,7 @@ export class Deploy {
           core.info(`[DEBUG]: (buildImageByDockerCompose) result.stdout > ${result.stdout}`);
 
           if (result.stderr) {
-            this.close();
-            core.setFailed(result.stderr);
-            reject(result.stderr);
+            return reject(result.stderr);
           }
 
           const imageId: string = await this.getImageIDByImageName(imageName);
@@ -254,10 +252,10 @@ export class Deploy {
 
           reject(null);
         });
-      } catch (err) {
-        console.log("errerr", err)
+      } catch (error) {
+        core.info(`[DEBUG]: (buildImageByDockerCompose) error > ${error}`);
+
         reject(null);
-        this.close();
       }
     });
   }

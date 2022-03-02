@@ -208,16 +208,25 @@ export const deploy = async (actionArgs: any) => {
   /**
    * BUILD IMAGE
    */
-  log.info("build image");
-  const NEW_IMAGE_ID = await deployInstance.buildImageByDockerCompose(
-    APP_ID_DIR,
-    NEW_IMAGE_NAME
-  );
-  log.info(`image built!: image id > ${NEW_IMAGE_ID}`);
 
-  // if the image could not be created, return an error and stop the deploy
-  if (!NEW_IMAGE_ID) {
-    core.setFailed("image could not be created.")
+  log.info("build image");
+  let NEW_IMAGE_ID = null
+  try {
+    NEW_IMAGE_ID = await deployInstance.buildImageByDockerCompose(
+      APP_ID_DIR,
+      NEW_IMAGE_NAME
+    );
+    log.info(`image built!: image id > ${NEW_IMAGE_ID}`);
+
+    // if the image could not be created, return an error and stop the deploy
+    if (!NEW_IMAGE_ID) {
+      core.setFailed("image could not be created.")
+      deployInstance.close();
+
+      return;
+    }
+  } catch (error: any) {
+    core.setFailed(error)
     deployInstance.close();
 
     return;
