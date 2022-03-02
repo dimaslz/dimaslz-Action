@@ -88,15 +88,17 @@ export const deploy = async (actionArgs: any) => {
 
     return;
   }
-  log.info(`REPO_ID: ${REPO_ID}`);
+  log.info(`REPO_ID > ${REPO_ID}`);
 
   const ENV = INPUT_ENV_NAME || "production";
   log.info(`environment > ${ENV}`);
 
   const APP_URL = `${applicationName}.${INPUT_APP_HOST}`;
-  // log.info(`application url - ${APP_URL}`);
 
-  // getting current containers to remove once the new service are running
+  /**
+   * GETTING CURRENT CONTAINERS
+   * get current container to remove after create the new one
+   */
   log.info("getting current containers ID's related to the application name");
   const CONTAINER_IDs: any[] = await deployInstance.getContainersIDByAppName(
     `${REPO_ID}.`
@@ -108,7 +110,10 @@ export const deploy = async (actionArgs: any) => {
     log.info("No containers related to this application");
   }
 
-  // getting current images to remove once the new service are running
+  /**
+   * GETTING CURRENT IMAGES
+   * get current images to remove after create the new one
+   */
   log.info("getting current images ID's related to the application name");
   const IMAGES_IDs: any[] = await deployInstance.getImagesIDByAppName(`${REPO_ID}.`);
 
@@ -137,27 +142,27 @@ export const deploy = async (actionArgs: any) => {
   /**
    * CREATE APPLICATION DIRECTORY
    */
-  log.info("creating application directory...");
+  log.info("creating application directory 👋");
   const dirExists = await deployInstance.dirExists(APP_DIR);
   if (!dirExists) {
     await deployInstance.createFolder(APP_DIR);
-    log.info("    created!");
+    log.info("creating application directory > created! 👍");
   } else {
-    log.info("    already exists!");
+    log.info("creating application directory > already exists! 👍");
   }
 
   /**
    * CREATE APPLICATION VERSION DIRECTORY
    * one folder per each deploy if it doesn´t exists (after should be cleaned)
    */
-  log.info("application version directory");
+  log.info("creating application version directory 👋");
   const APP_ID_DIR = `${APP_DIR}/${APP_ID}`;
   const dirVersionExists = await deployInstance.dirExists(APP_ID_DIR);
   if (!dirVersionExists) {
     await deployInstance.createFolder(APP_ID_DIR);
-    log.info("    created!");
+    log.info("creating application version directory > created! 👍");
   } else {
-    log.info("    already exists!");
+    log.info("creating application version directory > already exists! 👍");
   }
 
   /**
@@ -166,21 +171,88 @@ export const deploy = async (actionArgs: any) => {
    */
   const APP_FILES_DIR = `${APP_ID_DIR}/files`;
   const dirFilesExists = await deployInstance.dirExists(APP_FILES_DIR);
-  log.info("application files directory");
+  log.info("creating application files directory 👋");
   if (!dirFilesExists) {
     await deployInstance.createFolder(APP_FILES_DIR);
-    log.info("    created!");
+    log.info("creating application files directory > created! 👍");
   } else {
-    log.info("    already exists!");
+    log.info("creating application files directory > already exists! 👍");
   }
 
   /**
    * UPLOADING FILES
    * upload files to the /files directory of the application
    */
-  log.info("uploading files...");
+  log.info("uploading files 👋");
   await deployInstance.uploadFiles(`${GITHUB_WORKSPACE}`, APP_FILES_DIR);
-  log.info("                  uploaded! 👍");
+  log.info("uploading files > uploaded! 👍");
+
+  /**
+   * CREATING DOCKERFILE
+   */
+  log.info("setting dockerfile to use");
+  await deployInstance.uploadDockerfile(APP_ID_DIR);
+  log.info("setting dockerfile to use > done! 👍");
+
+  /**
+   * PREPARE DOCKER COMPOSE
+   */
+  log.info("prepare compose to build dockerfile");
+  await deployInstance.createAndUploadDockerComposeFile(APP_ID_DIR, {
+    imageName: NEW_IMAGE_NAME,
+    containerName: NEW_CONTAINER_NAME,
+    appName: ENV_APP_NAME,
+  });
+  log.info("prepare compose to build dockerfile > done! 👍");
+
+  /**
+   * BUILD IMAGE
+   */
+  log.info("build image");
+  const NEW_IMAGE_ID = await deployInstance.buildImageByDockerCompose(
+    APP_ID_DIR,
+    NEW_IMAGE_NAME
+  );
+  log.info(`image built!: image id > ${NEW_IMAGE_ID}`);
+
+  // if the image could not be created, return an error and stop the deploy
+  if (!NEW_IMAGE_ID) {
+    core.setFailed("image could not be created.")
+    deployInstance.close();
+
+    return;
+  }
+
+  /**
+   * CREATE VOLUME
+   */
+  // create volume to do not lost the data of the application
+  log.info("creating volume");
+  const volumeExists = await deployInstance.volumeExists(NEW_VOLUME_NAME);
+  if (!volumeExists) {
+    await deployInstance.createVolume(NEW_VOLUME_NAME);
+  }
+  log.info("creating volume > created! 👍");
+
+  /**
+   * RUNNING CONTAINER
+   */
+  log.info(`running container ${NEW_CONTAINER_NAME}`);
+  const NEW_CONTAINER_INFO: any = await deployInstance.runContainer(
+    APP_ID_DIR, { appName: ENV_APP_NAME }
+  );
+
+  // if the container could not be created, return an error and stop the deploy
+  if (!NEW_CONTAINER_INFO.containerID) {
+    core.setFailed(
+      "some error has been occurred. Container is not running 😒"
+    );
+    deployInstance.close();
+
+    return;
+  }
+  log.info("container ${NEW_CONTAINER_NAME} created succesfully! 😄");
+  log.info(`running container ${NEW_CONTAINER_NAME}`);
 
   console.log("DEBUG", {
     ENV_APP_NAME,
@@ -189,57 +261,12 @@ export const deploy = async (actionArgs: any) => {
     NEW_CONTAINER_NAME,
     NEW_IMAGE_NAME,
     NEW_VOLUME_NAME,
+    APP_URL,
   });
 
   deployInstance.close();
 
   return;
-  // log.info("setting dockerfile to use");
-  // await deployInstance.uploadDockerfile(APP_ID_DIR);
-
-  // log.info("prepare compose to build dockerfile");
-  // await deployInstance.createAndUploadDockerComposeFile(APP_ID_DIR, {
-  //   imageName: NEW_IMAGE_NAME,
-  //   containerName: NEW_CONTAINER_NAME,
-  //   appName: ENV_APP_NAME,
-  // });
-
-  // log.info("build image");
-  // const NEW_IMAGE_ID = await deployInstance.buildImageByDockerCompose(
-  //   APP_ID_DIR,
-  //   NEW_IMAGE_NAME
-  // );
-  // log.info(`IMAGE_ID > ${NEW_IMAGE_ID}`);
-
-  // // if the image could not be created, return an error and stop the deploy
-  // if (!NEW_IMAGE_ID) {
-  //   log.error("no image created");
-  //   deployInstance.close();
-  //   return;
-  // }
-
-  // // create volume to do not lost the data of the application
-  // log.info("creating volume");
-  // const volumeExists = await deployInstance.volumeExists(NEW_VOLUME_NAME);
-  // if (!volumeExists) {
-  //   await deployInstance.createVolume(NEW_VOLUME_NAME);
-  // }
-
-  // log.info(`running container ${NEW_CONTAINER_NAME}`);
-  // const NEW_CONTAINER_INFO: any = await deployInstance.runContainer(APP_ID_DIR, {
-  //   container: NEW_CONTAINER_NAME,
-  //   appName: ENV_APP_NAME,
-  // });
-
-  // // if the container could not be created, return an error and stop the deploy
-  // if (!NEW_CONTAINER_INFO.containerID) {
-  //   log.error(
-  //     "some error has been occurred. Container is not running 😒"
-  //   );
-  //   deployInstance.close();
-  //   return;
-  // }
-  // log.info("container created succesfully! 😄");
 
   // // creating nginx config about the application requirements
   // log.info("setting nginx config");

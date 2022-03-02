@@ -67,12 +67,10 @@ export class Deploy {
   }
 
   async getContainersIDByAppName(name: string): Promise<string[]> {
-    console.log("getContainersIDByAppName [app]", name)
-
     return new Promise((resolve, reject) => {
       const command = `docker ps --format="{{.Names}} {{.ID}}" | grep '${name}'`;
 
-      console.log("getContainersIDByAppName [command]", command)
+      core.info(`[DEBUG]: (getContainersIDByAppName) command > ${command}`)
       Deploy.ssh
         .execCommand(command)
         .then((result: any) => {
@@ -81,7 +79,9 @@ export class Deploy {
           //   reject(result.stderr);
           // }
 
-          console.log("getContainersIDByAppName [result.stdout]", result.stdout)
+          core.info(`[DEBUG]: (getContainersIDByAppName) result.stderr > ${result.stderr}`)
+          core.info(`[DEBUG]: (getContainersIDByAppName) result.stdout > ${result.stdout}`)
+
           const r = result.stdout
             .split(/\n/gm)
             .map((c: any) => c.trim())
@@ -96,9 +96,7 @@ export class Deploy {
                   name, id, repoId, timestamp, hash, env
                 };
               }
-            )
-
-          console.log("getContainersIDByAppName [r]", r)
+            );
 
           resolve(r);
         }).catch((err: any) => {
@@ -109,16 +107,20 @@ export class Deploy {
   }
 
   async getImagesIDByAppName(name: string): Promise<string[]> {
+    const command = `docker images --format="{{.Repository}} {{.ID}}" | grep '${name}'`;
+
+    core.info(`[DEBUG]: (getImagesIDByAppName) command > "${command}"`);
     return new Promise((resolve, reject) => {
       Deploy.ssh
-        .execCommand(
-          `docker images --format="{{.Repository}} {{.ID}}" | grep '${name}'`
-        )
+        .execCommand(command)
         .then((result: any) => {
           // if (result.stderr) {
           //   this.close();
           //   reject(result.stderr);
           // }
+
+          core.info(`[DEBUG]: (getImagesIDByAppName) result.stdout > "${result.stdout}"`);
+          core.info(`[DEBUG]: (getImagesIDByAppName) result.stderr > "${result.stderr}"`);
 
           const r = result.stdout
             .split(/\n/gm)
@@ -134,7 +136,7 @@ export class Deploy {
                   name, repoId, id, timestamp, hash, env
                 };
               }
-            )
+            );
           resolve(r);
         }).catch((err: any) => {
           this.close();
@@ -146,13 +148,17 @@ export class Deploy {
   async createFolder(dir: string) {
     return new Promise((resolve, reject) => {
       Deploy.ssh.execCommand(`mkdir -p ${dir}`).then((result: any) => {
+
+        core.info(`[DEBUG]: (createFolder) result.stdout > "${result.stdout}"`);
+        core.info(`[DEBUG]: (createFolder) result.stderr > "${result.stderr}"`);
+
         if (result.stderr) {
-          console.log("[LOG]: result.stderr", result.stderr);
           this.close();
           reject(result.stderr);
         }
 
-        console.log("[LOG]: dir", dir);
+        core.info(`[DEBUG]: dir > ${dir}`);
+
         resolve(dir);
       });
     });
@@ -161,11 +167,16 @@ export class Deploy {
   async dirExists(dir: string) {
     return new Promise((resolve, reject) => {
       const command = `if [ -d "${dir}" ]; then echo "true"; else echo "false"; fi`;
+      core.info(`[DEBUG]: (dirExists) command > "${command}"`);
+
       Deploy.ssh.execCommand(command).then((result: any) => {
         if (result.stderr) {
           this.close();
           reject(result.stderr);
         }
+
+        core.info(`[DEBUG]: (dirExists) result.stdout > "${result.stdout}"`);
+        core.info(`[DEBUG]: (dirExists) result.stderr > "${result.stderr}"`);
 
         resolve(JSON.parse(result.stdout));
       });
@@ -198,16 +209,13 @@ export class Deploy {
         })
         .then(
           (status: any) => {
-            console.log("The Directory thing is done");
-            console.log(
-              "the directory transfer was",
-              status ? "successful" : "unsuccessful"
-            );
+            core.info(`[DEBUG]: (uploadFiles) command > "the directory transfer was",
+            ${status ? "successful" : "unsuccessful"}`);
 
             if (failed.length) {
-              console.log("failed transfers", failed.join(", "));
+              core.info(`[DEBUG]: (uploadFiles) failed transfers > "${failed.join(", ")}"`);
             } else {
-              console.log("successful transfers");
+              core.info(`[DEBUG]: (uploadFiles) successful transfers`);
             }
 
             resolve(null);
@@ -215,8 +223,9 @@ export class Deploy {
           (error: any) => {
             this.close();
 
-            console.log("Something's wrong");
-            console.log(error);
+            core.info(`[DEBUG]: (uploadFiles) Something's wrong`);
+            core.info(`[DEBUG]: (uploadFiles) ${error}`);
+
             reject(error);
           }
         );
@@ -225,13 +234,13 @@ export class Deploy {
 
   async buildImageByDockerCompose(remote: string, imageName: string) {
     let command = `cd ${remote} && docker-compose build --no-cache`;
-    console.log("docker build command", command);
+    core.info(`[DEBUG]: (buildImageByDockerCompose) command > ${command}`);
 
     return new Promise(async (resolve, reject) => {
       try {
         await Deploy.ssh.execCommand(command).then(async (result: any) => {
-          console.log("result.stderr", result.stderr)
-          console.log("result.stdout", result.stdout)
+          core.info(`[DEBUG]: (buildImageByDockerCompose) result.stderr > ${result.stderr}`);
+          core.info(`[DEBUG]: (buildImageByDockerCompose) result.stdout > ${result.stdout}`);
           // if (result.stderr) {
           //   this.close();
           //   reject(result.stderr);
@@ -364,14 +373,14 @@ export class Deploy {
 
   async uploadDockerfile(remote: string) {
     if (INPUT_DOCKERFILE === ".") {
-      core.error("Maybe you want to say './'");
+      core.setFailed("Maybe you want to say './'");
       this.close();
       return false;
     }
 
     if (INPUT_DOCKERFILE) return Promise.resolve(null);
 
-    core.info("Creating default Dockerfile");
+    core.info(`[DEBUG]: (uploadDockerfile) creating default Dockerfile`);
     let Dockerfile = toBoolean(INPUT_STATIC)
       ? nginx_static_dockerfile
       : node_server_dockerfile
@@ -402,7 +411,6 @@ export class Deploy {
 
     Dockerfile = Dockerfile.replace("%ENVIRONMENT_VARS%", ENVIRONMENT_VARS);
 
-    core.info(`Dockerfile: ${Dockerfile}`);
     fs.writeFileSync(
       `${GITHUB_WORKSPACE}/Dockerfile`,
       Dockerfile
@@ -413,13 +421,14 @@ export class Deploy {
         .putFile(`${GITHUB_WORKSPACE}/Dockerfile`, `${remote}/Dockerfile`)
         .then(
           () => {
-            console.log("The Directory thing is done");
+            core.info(`[DEBUG]: (uploadDockerfile) dockerfile updated!`);
+
             resolve(null);
           },
           (error: any) => {
             this.close();
-            console.log("Something's wrong");
-            console.log(error);
+            core.info(`[DEBUG]: (uploadDockerfile) Something's wrong! > ${error}`);
+
             reject(error);
           }
         );
@@ -621,11 +630,14 @@ export class Deploy {
   async volumeExists(volumeName: string) {
     return new Promise((resolve, reject) => {
       const command = `docker volume ls --format="{{.Name}}" | grep "${volumeName}"`;
+      core.info(`[DEBUG]: (volumeExists) command > ${command}`);
 
       Deploy.ssh.execCommand(command).then((result: any) => {
+        core.info(`[DEBUG]: (volumeExists) result.stderr > ${result.stderr}`);
+        core.info(`[DEBUG]: (volumeExists) result.stdout > ${result.stdout}`);
+
         if (result.stderr) {
           this.close();
-          console.log(result.stderr);
           reject(false);
         }
 
@@ -638,11 +650,14 @@ export class Deploy {
   async createVolume(volumeName: string) {
     return new Promise((resolve, reject) => {
       const command = `docker volume create ${volumeName}`;
+      core.info(`[DEBUG]: (createVolume) command > ${command}`);
 
       Deploy.ssh.execCommand(command).then((result: any) => {
+        core.info(`[DEBUG]: (createVolume) result.stderr > ${result.stderr}`);
+        core.info(`[DEBUG]: (createVolume) result.stdout > ${result.stdout}`);
+
         if (result.stderr) {
           this.close();
-          console.log(result.stderr);
           reject(false);
         }
 
@@ -854,11 +869,7 @@ export class Deploy {
     });
   }
 
-  async runContainer(remote: string, {
-    container,
-    appName
-  }: any) {
-    console.log(`Running container ${container}`);
+  async runContainer(remote: string, { appName }: any) {
     return new Promise(async (resolve, reject) => {
       // const command = `docker run --name ${containerName} -v ${volumeName}:/app -d ${imageName}`;
       // let envFileCmd = "";
@@ -868,25 +879,33 @@ export class Deploy {
 
       const command = `cd ${remote} && docker-compose up -d`
 
+      core.info(`[DEBUG]: (runContainer) command > ${command}`);
+
       await Deploy.ssh.execCommand(command);
 
       const containerID = await this.getContainerIDByContainerName(
         appName
       );
 
-      console.log("runContainer [containerID]", containerID)
+      core.info(`[DEBUG]: (runContainer) containerID > ${containerID}`);
 
       if (!containerID) reject(null);
 
       const containerIP = await this.getContainerIPByContainerId(
         containerID
       );
-      console.log("runContainer [containerIP]", containerIP)
+
+      core.info(`[DEBUG]: (runContainer) containerIP > ${containerIP}`);
+
+      if (!containerIP) reject(null);
 
       const containerPort = await this.getContainerPortByContainerName(
         containerID
       );
-      console.log("runContainer [containerPort]", containerPort)
+
+      core.info(`[DEBUG]: (runContainer) containerPort > ${containerPort}`);
+
+      if (!containerPort) reject(null);
 
       resolve({
         containerID,
