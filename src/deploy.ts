@@ -90,7 +90,7 @@ export const deploy = async (actionArgs: any) => {
   }
   log.info(`REPO_ID: ${REPO_ID}`);
 
-  const ENV = INPUT_ENV_NAME;
+  const ENV = INPUT_ENV_NAME || "production";
   log.info(`environment > ${ENV}`);
 
   const APP_URL = `${applicationName}.${INPUT_APP_HOST}`;
@@ -133,6 +133,55 @@ export const deploy = async (actionArgs: any) => {
   const NEW_IMAGE_NAME = `${ENV_APP_NAME}.image`;
   const NEW_VOLUME_NAME = `${APP_URL}.volume`;
 
+
+  /**
+   * CREATE APPLICATION DIRECTORY
+   */
+  log.info("creating application directory...");
+  const dirExists = await deployInstance.dirExists(APP_DIR);
+  if (!dirExists) {
+    await deployInstance.createFolder(APP_DIR);
+    log.info("    created!");
+  } else {
+    log.info("    already exists!");
+  }
+
+  /**
+   * CREATE APPLICATION VERSION DIRECTORY
+   * one folder per each deploy if it doesn´t exists (after should be cleaned)
+   */
+  log.info("application version directory");
+  const APP_ID_DIR = `${APP_DIR}/${APP_ID}`;
+  const dirVersionExists = await deployInstance.dirExists(APP_ID_DIR);
+  if (!dirVersionExists) {
+    await deployInstance.createFolder(APP_ID_DIR);
+    log.info("    created!");
+  } else {
+    log.info("    already exists!");
+  }
+
+  /**
+   * CREATE APPLICATION FILES DIRECTORY
+   * create directory of files if it doesn´t exists
+   */
+  const APP_FILES_DIR = `${APP_ID_DIR}/files`;
+  const dirFilesExists = await deployInstance.dirExists(APP_FILES_DIR);
+  log.info("application files directory");
+  if (!dirFilesExists) {
+    await deployInstance.createFolder(APP_FILES_DIR);
+    log.info("    created!");
+  } else {
+    log.info("    already exists!");
+  }
+
+  /**
+   * UPLOADING FILES
+   * upload files to the /files directory of the application
+   */
+  log.info("uploading files...");
+  await deployInstance.uploadFiles(`${GITHUB_WORKSPACE}`, APP_FILES_DIR);
+  log.info("                  uploaded! 👍");
+
   console.log("DEBUG", {
     ENV_APP_NAME,
     APP_ID,
@@ -145,32 +194,6 @@ export const deploy = async (actionArgs: any) => {
   deployInstance.close();
 
   return;
-  // // create application directory
-  // log.info("application directory");
-  // const dirExists = await deployInstance.dirExists(APP_DIR);
-  // if (!dirExists) {
-  //   await deployInstance.createFolder(APP_DIR);
-  // }
-
-  // log.info("application version directory");
-  // // one folder per each deploy if it doesn´t exists (after should be cleaned)
-  // const APP_ID_DIR = `${APP_DIR}/${APP_ID}`;
-  // const dirVersionExists = await deployInstance.dirExists(APP_ID_DIR);
-  // if (!dirVersionExists) {
-  //   await deployInstance.createFolder(APP_ID_DIR);
-  // }
-
-  // // create directory of files if it doesn´t exists
-  // const APP_FILES_DIR = `${APP_ID_DIR}/files`;
-  // const dirFilesExists = await deployInstance.dirExists(APP_FILES_DIR);
-  // if (!dirFilesExists) {
-  //   await deployInstance.createFolder(APP_FILES_DIR);
-  // }
-
-  // log.info("uploading files");
-  // // let's upload files to /files of the application files dir
-  // await deployInstance.uploadFiles(`${GITHUB_WORKSPACE}`, APP_FILES_DIR);
-
   // log.info("setting dockerfile to use");
   // await deployInstance.uploadDockerfile(APP_ID_DIR);
 
