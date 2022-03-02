@@ -209,8 +209,7 @@ export class Deploy {
         })
         .then(
           (status: any) => {
-            core.info(`[DEBUG]: (uploadFiles) command > "the directory transfer was",
-            ${status ? "successful" : "unsuccessful"}`);
+            core.info(`[DEBUG]: (uploadFiles) command > the directory transfer was ${status ? "successful" : "unsuccessful"}`);
 
             if (failed.length) {
               core.info(`[DEBUG]: (uploadFiles) failed transfers > "${failed.join(", ")}"`);
@@ -241,10 +240,12 @@ export class Deploy {
         await Deploy.ssh.execCommand(command).then(async (result: any) => {
           core.info(`[DEBUG]: (buildImageByDockerCompose) result.stderr > ${result.stderr}`);
           core.info(`[DEBUG]: (buildImageByDockerCompose) result.stdout > ${result.stdout}`);
-          // if (result.stderr) {
-          //   this.close();
-          //   reject(result.stderr);
-          // }
+
+          if (result.stderr) {
+            this.close();
+            core.setFailed(result.stderr);
+            reject(result.stderr);
+          }
 
           const imageId: string = await this.getImageIDByImageName(imageName);
           if (imageId) {
