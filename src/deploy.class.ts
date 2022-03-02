@@ -345,6 +345,10 @@ export class Deploy {
         dockerComposeConfig = dockerComposeConfig
           .replace(/^.*?-\s\%ARGS\%/mg, ARGS_VARS)
       }
+    } else {
+      dockerComposeConfig
+        .replace(/\s+args[^?]+\%ARGS\%/, "")
+        .replace(/\s+environment[^?]+\%ENVIRONMENT\%/, "")
     }
 
     fs.writeFileSync(
