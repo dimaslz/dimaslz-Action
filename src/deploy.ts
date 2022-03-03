@@ -246,22 +246,27 @@ export const deploy = async (actionArgs: any) => {
   /**
    * RUNNING CONTAINER
    */
-  log.info(`running container ${NEW_CONTAINER_NAME}`);
-  const NEW_CONTAINER_INFO: any = await deployInstance.runContainer(
-    APP_ID_DIR, { appName: ENV_APP_NAME }
-  );
-
-  // if the container could not be created, return an error and stop the deploy
-  if (!NEW_CONTAINER_INFO.containerID) {
-    core.setFailed(
-      "some error has been occurred. Container is not running 😒"
+  let NEW_CONTAINER_INFO: any = null
+  try {
+    log.info(`running container ${NEW_CONTAINER_NAME}`);
+    NEW_CONTAINER_INFO = await deployInstance.runContainer(
+      APP_ID_DIR, { appName: ENV_APP_NAME }
     );
-    deployInstance.close();
 
-    return;
+    // if the container could not be created, return an error and stop the deploy
+    if (!NEW_CONTAINER_INFO.containerID) {
+      core.setFailed(
+        "some error has been occurred. Container is not running 😒"
+      );
+      deployInstance.close();
+
+      return;
+    }
+    log.info("container ${NEW_CONTAINER_NAME} created succesfully! 😄");
+    log.info(`running container ${NEW_CONTAINER_NAME}`);
+  } catch (error: any) {
+    core.setFailed(error);
   }
-  log.info("container ${NEW_CONTAINER_NAME} created succesfully! 😄");
-  log.info(`running container ${NEW_CONTAINER_NAME}`);
 
   console.log("DEBUG", {
     ENV_APP_NAME,

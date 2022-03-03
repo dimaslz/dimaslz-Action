@@ -888,7 +888,7 @@ export class Deploy {
 
       core.info(`[DEBUG]: (runContainer) containerID > ${containerID}`);
 
-      if (!containerID) reject(null);
+      if (!containerID) reject("can not get container id");
 
       const containerIP = await this.getContainerIPByContainerId(
         containerID
@@ -896,7 +896,7 @@ export class Deploy {
 
       core.info(`[DEBUG]: (runContainer) containerIP > ${containerIP}`);
 
-      if (!containerIP) reject(null);
+      if (!containerIP) reject("can not get container ip");
 
       const containerPort = await this.getContainerPortByContainerName(
         containerID
@@ -904,7 +904,7 @@ export class Deploy {
 
       core.info(`[DEBUG]: (runContainer) containerPort > ${containerPort}`);
 
-      if (!containerPort) reject(null);
+      if (!containerPort) reject("can not get container port");
 
       resolve({
         containerID,
