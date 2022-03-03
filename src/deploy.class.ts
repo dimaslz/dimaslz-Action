@@ -319,8 +319,7 @@ export class Deploy {
         .replace(/^.*?-\s\%PORT\%/mg, PORTS)
     }
 
-    console.log("INPUT_ENV", INPUT_ENV)
-    if (INPUT_ENV) {
+    if (INPUT_ENV?.trim()) {
       const [environmentLine] = dockerComposeConfig.match(/^.*?-\s\%ENVIRONMENT\%/mg) || [];
       if (environmentLine) {
         const ENV_VARS = INPUT_ENV?.split(/\n/)
@@ -347,7 +346,7 @@ export class Deploy {
           .replace(/^.*?-\s\%ARGS\%/mg, ARGS_VARS)
       }
     } else {
-      dockerComposeConfig
+      dockerComposeConfig = dockerComposeConfig
         .replace(/\s+args[^?]+\%ARGS\%/, "")
         .replace(/\s+environment[^?]+\%ENVIRONMENT\%/, "")
     }
