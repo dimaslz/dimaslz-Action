@@ -474,9 +474,6 @@ export class Deploy {
           resolve(null);
         },
         (error: any) => {
-          this.close();
-          core.error("Something's wrong");
-          console.log(error);
           reject(error);
         }
       );
@@ -690,59 +687,54 @@ export class Deploy {
   }
 
   async stopContainerByName(appName: any[]): Promise<boolean> {
-    console.log("stopContainerByName [appName]", appName)
     const stop = async (app: string) => {
+      const command = `cd ${app} && docker-compose down && docker-compose rm`;
+      core.info(`[DEBUG]: (stopContainerByName) command > ${command}`);
+
       return new Promise((resolve, reject) => {
-        const command = `cd ${app} && docker-compose down && docker-compose rm`;
-        console.log("stopContainerByName [command]", command)
-        Deploy.ssh.execCommand(command).then(() => {
-          // if (result.stderr) {
-          //   core.error(result.stderr);
-          //   this.close();
-          //   reject(false);
-          // }
+        Deploy.ssh.execCommand(command).then((result: any) => {
+          core.info(`[DEBUG]: (stopContainerByName) result.stderr > ${result.stderr}`);
+          core.info(`[DEBUG]: (stopContainerByName) result.stdout > ${result.stdout}`);
 
           resolve(true);
-        }).catch((err: any) => {
-          core.error(err);
-          this.close();
+        }).catch((error: any) => {
+          core.info(`[DEBUG]: (stopContainerByName) error > ${error}`);
           reject(false);
         });
       });
     };
 
     if (!appName.length) {
-      core.error(`Container name/id is mandatory.`);
+      core.info(`[DEBUG]: (stopContainerByName) no containers to stop`);
       return false;
     }
 
     const arrContainerIDs = appName;
     const isSingle = arrContainerIDs.length === 1;
 
-    console.log("stopContainerByName [isSingle]", isSingle)
+    core.info(`[DEBUG]: (stopContainerByName) isSingle > ${isSingle}`);
     if (isSingle) {
       const containerName = `${appName[0].repoId}.${appName[0].name}.${appName[0].timestamp}.${appName[0].hash}`
       const exists = await this.containerExists(containerName);
 
-      console.log("stopContainerByName [exists]", exists)
       if (exists) {
         const remoteDir = `/var/www/${appName[0].name}/${appName[0].env}/${appName[0].timestamp}.${appName[0].hash}`
 
         await stop(remoteDir);
 
-        core.info(`Container ${remoteDir} has been stopped.`);
+        core.info(`[DEBUG]: (stopContainerByName) container ${remoteDir} has been stopped`);
 
         return true;
       }
 
-      core.error(`Container ${appName[0].name} doesn't exists.`);
+      core.error(`[DEBUG]: (stopContainerByName) container ${appName[0].name} does not exists`);
     } else if (!isSingle) {
       for (const containerID of arrContainerIDs) {
         const remoteDir = `/var/www/${containerID.name}/${appName[0].env}/${containerID.timestamp}.${containerID.hash}`
         const stopped = await stop(remoteDir);
 
         if (stopped) {
-          core.info(`Container ${containerID.name} has been stopped.`);
+          core.info(`[DEBUG]: (stopContainerByName) container ${containerID.name} has been stopped.`);
         }
       }
     }
@@ -801,13 +793,15 @@ export class Deploy {
 
   async removeImagesByName(imageId: any[]): Promise<boolean> {
     const remove = async (image: string) => {
-      return new Promise((resolve, reject) => {
-        const command = `docker rmi -f ${image}`;
+      const command = `docker rmi -f ${image}`;
+      core.info(`[DEBUG]: (removeImagesByName) command > ${command}`);
 
+      return new Promise((resolve, reject) => {
         Deploy.ssh.execCommand(command).then((result: any) => {
+          core.info(`[DEBUG]: (removeImagesByName) result.stderr > ${result.stderr}`);
+          core.info(`[DEBUG]: (removeImagesByName) result.stdout > ${result.stdout}`);
+
           if (result.stderr) {
-            core.error(result.stderr);
-            this.close();
             reject(false);
           }
 
@@ -817,7 +811,6 @@ export class Deploy {
     };
 
     if (!imageId.length) {
-      core.error(`Image id is mandatory.`);
       return false;
     }
 
@@ -830,12 +823,12 @@ export class Deploy {
 
       if (exists) {
         await remove(imageName);
-        core.info(`Image ${imageName} has been deleted.`);
+        core.info(`[DEBUG]: (removeImagesByName) image ${imageName} has been deleted.`);
 
         return true;
       }
 
-      core.error(`Image ${imageName} doesn't exists.`);
+      core.info(`[DEBUG]: (removeImagesByName) image ${imageName} doesn't exists.`);
     } else if (!isSingle) {
       for (const imageID of arrImageIDs) {
         const imageName = `${imageID.repoId}.${imageID.name}.${imageID.timestamp}.${imageID.hash}.${imageID.env}.image`;
@@ -843,9 +836,9 @@ export class Deploy {
         const removed = await remove(imageID.id);
 
         if (removed) {
-          core.info(`Image ${imageName} has been deleted.`);
+          core.info(`[DEBUG]: (removeImagesByName) Image ${imageName} has been deleted.`);
         } else {
-          core.error(`Image ${imageName} not deleted.`);
+          core.info(`[DEBUG]: (removeImagesByName) Image ${imageName} not deleted.`);
         }
       }
     }
@@ -858,10 +851,8 @@ export class Deploy {
       const command = `nginx -t && systemctl restart nginx`;
 
       Deploy.ssh.execCommand(command).then((result: any) => {
-        // if (result.stderr) {
-        // 	this.close();
-        // 	reject(result.stderr);
-        // }
+        core.info(`[DEBUG]: (restartNginx) result.stderr > ${result.stderr}`);
+        core.info(`[DEBUG]: (restartNginx) result.stdout > ${result.stdout}`);
 
         resolve(result.stdout);
       });

@@ -13,7 +13,7 @@ const log = {
 
 const regexIp4 = /(\b25[0-5]|\b2[0-4][0-9]|\b[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}/;
 
-export const deploy = async (actionArgs: any) => {
+export const deploy = async (actionArgs?: any) => {
   log.info("starting...");
 
   const TIMESTAMP = new Date().getTime();
@@ -268,56 +268,66 @@ export const deploy = async (actionArgs: any) => {
     core.setFailed(error);
   }
 
-  console.log("DEBUG", {
-    ENV_APP_NAME,
-    APP_ID,
-    APP_DIR,
-    NEW_CONTAINER_NAME,
-    NEW_IMAGE_NAME,
-    NEW_VOLUME_NAME,
-    APP_URL,
-  });
+
+  /**
+   * RESTART NGINX
+   * creating nginx config about the application requirements
+   */
+  log.info("setting nginx config");
+  let nginxConfig = "";
+  nginxConfig = await deployInstance.getNginxConfig(
+    `${INPUT_APP_NAME}.${INPUT_APP_HOST}`,
+    `http://${NEW_CONTAINER_INFO.containerIP}:${NEW_CONTAINER_INFO.containerPort}`
+  );
+
+  try {
+    if (nginxConfig) {
+      log.info("test and restarting NGINX");
+      await deployInstance.uploadNginxConfig(
+        nginxConfig,
+        `/etc/nginx/sites-enabled/${APP_URL}`
+      );
+      await deployInstance.restartNginx();
+    }
+
+    log.info(`✅ your application already is running! 🏃‍♂️💨, now try to visit your site https://${APP_URL} in your browser`);
+    log.info(`It is not working? be sure that you domain has the correct DNS setup`);
+  } catch (error: any) {
+    core.setFailed(error);
+  }
+
+  /**
+   * STOP PREVIOUS CONTAINERS
+   */
+  try {
+    if (CONTAINER_IDs.length) {
+      log.info(`🧹 removing unnecessary old containers...`);
+      await deployInstance.stopContainerByName(CONTAINER_IDs);
+    }
+  } catch (error: any) {
+    core.setFailed(error);
+  }
+
+  /**
+   * STOP PREVIOUS IMAGES
+   */
+  try {
+    if (IMAGES_IDs.length) {
+      log.info(`🧹 removing unnecessary old images...`);
+      await deployInstance.removeImagesByName(IMAGES_IDs);
+    }
+  } catch (error: any) {
+    core.setFailed(error);
+  }
+
+  // TODO: Remove old files
+  // // core.info("🚀 Deploy: delete files");
+  // // await deployInstance.deleteFiles(APP_DIR);
 
   deployInstance.close();
 
+  log.info(`DONE 👏`);
   return;
-
-  // // creating nginx config about the application requirements
-  // log.info("setting nginx config");
-  // let nginxConfig = "";
-  // nginxConfig = await deployInstance.getNginxConfig(
-  //   `${app_name}.${app_host}`,
-  //   `http://${NEW_CONTAINER_INFO.containerIP}:${NEW_CONTAINER_INFO.containerPort}`
-  // );
-
-  // if (nginxConfig) {
-  //   log.info("test and restarting NGINX");
-  //   await deployInstance.uploadNginxConfig(
-  //     nginxConfig,
-  //     `/etc/nginx/sites-enabled/${APP_URL}`
-  //   );
-  //   await deployInstance.restartNginx();
-  // }
-  // log.info(`✅ your application already is running! 🏃‍♂️💨, now try to visit your site https://${APP_URL} in your browser`);
-  // log.info(`It is not working? be sure that you domain has the correct DNS setup`);
-
-  // if (CONTAINER_IDs.length) {
-  //   log.info(`🧹 removing unnecessary old containers...`);
-  //   await deployInstance.stopContainerByName(CONTAINER_IDs);
-  // }
-
-  // if (IMAGES_IDs.length) {
-  //   log.info(`🧹 removing unnecessary old images...`);
-  //   await deployInstance.removeImagesByName(IMAGES_IDs);
-  // }
-
-  // // TODO: Remove old files
-  // // // core.info("🚀 Deploy: delete files");
-  // // // await deployInstance.deleteFiles(APP_DIR);
-
-  // deployInstance.close();
-
-  // log.info(`DONE 👏`);
 };
 
 export default deploy;
