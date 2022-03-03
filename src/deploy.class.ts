@@ -241,10 +241,6 @@ export class Deploy {
           core.info(`[DEBUG]: (buildImageByDockerCompose) result.stderr > ${result.stderr}`);
           core.info(`[DEBUG]: (buildImageByDockerCompose) result.stdout > ${result.stdout}`);
 
-          if (result.stderr) {
-            return reject(result.stderr);
-          }
-
           const imageId: string = await this.getImageIDByImageName(imageName);
           if (imageId) {
             return resolve(imageId);
