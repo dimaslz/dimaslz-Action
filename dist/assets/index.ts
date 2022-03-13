@@ -22,6 +22,7 @@ WORKDIR /app
 
 COPY ./files .
 COPY ./files/yarn.lock .
+COPY ./nginx.conf .
 
 RUN apk update
 RUN apk add make py3-pip
@@ -37,7 +38,8 @@ FROM nginx:alpine
 
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-RUN echo "${defaultStaticNginxConf}" > /etc/nginx/conf.d/default.conf
+RUN /app/nginx.conf > /etc/nginx/conf.d/default.conf
+
 RUN nginx -t
 RUN nginx -s reload
 
