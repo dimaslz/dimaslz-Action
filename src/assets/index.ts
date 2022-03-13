@@ -1,3 +1,21 @@
+export const defaultStaticNginxConf = `server {
+  listen       80;
+  listen  [::]:80;
+  server_name  localhost;
+
+  root   /usr/share/nginx/html;
+  index  index.html index.htm;
+
+  location / {
+    try_files $uri $uri/ /index.html;
+  }
+
+  error_page   500 502 503 504  /50x.html;
+  location = /50x.html {
+      root   /usr/share/nginx/html;
+  }
+}`;
+
 export const nginx_static_dockerfile = `FROM node:16.14-alpine as builder
 
 WORKDIR /app
@@ -18,6 +36,10 @@ RUN %BUILD_COMMAND%
 FROM nginx:alpine
 
 COPY --from=builder /app/dist /usr/share/nginx/html
+
+RUN echo "${defaultStaticNginxConf}" > /etc/nginx/conf.d/default.conf
+RUN nginx -t
+RUN nginx -s reload
 
 EXPOSE 80
 
