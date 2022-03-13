@@ -7,7 +7,8 @@ import {
   node_server_dockerfile,
   nginx_main_config,
   nginx_main_wildcard_config,
-  dockerCompose as DockerComposeTpl
+  dockerCompose as DockerComposeTpl,
+  defaultStaticNginxConf
 } from "./assets";
 
 const {
@@ -409,6 +410,34 @@ export class Deploy {
     }
 
     Dockerfile = Dockerfile.replace("%ENVIRONMENT_VARS%", ENVIRONMENT_VARS);
+
+    if (toBoolean(INPUT_STATIC)) {
+      core.info(`[DEBUG]: (uploadDockerfile) creating default nginx conf`);
+      fs.writeFileSync(
+        `${GITHUB_WORKSPACE}/nginx.conf`,
+        defaultStaticNginxConf,
+      );
+
+      await new Promise((resolve, reject) => {
+        Deploy.ssh
+          .putFile(`${GITHUB_WORKSPACE}/nginx.conf`, `${remote}/nginx.conf`)
+          .then(
+            () => {
+              core.info(`[DEBUG]: (uploadDockerfile) nginx updated!`);
+
+              resolve(null);
+            },
+            (error: any) => {
+              this.close();
+              core.info(`[DEBUG]: (uploadDockerfile) Something's wrong! > ${error}`);
+
+              reject(error);
+            }
+          );
+      });
+
+      core.info(`[DEBUG]: (uploadDockerfile) uploaded default nginx conf`);
+    }
 
     fs.writeFileSync(
       `${GITHUB_WORKSPACE}/Dockerfile`,
