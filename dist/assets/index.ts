@@ -40,7 +40,6 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 COPY --from=builder /app/default.conf /etc/nginx/conf.d
 
 RUN nginx -t
-RUN nginx -s reload
 
 EXPOSE 80
 
