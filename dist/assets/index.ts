@@ -37,7 +37,9 @@ RUN %BUILD_COMMAND%
 FROM nginx:alpine
 
 COPY --from=builder /app/dist /usr/share/nginx/html
-COPY --from=builder /app/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /app/nginx.conf /
+
+RUN cat /nginx.conf > /etc/nginx/conf.d/default.conf
 
 RUN nginx -t
 RUN nginx -s reload

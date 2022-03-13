@@ -414,13 +414,13 @@ export class Deploy {
     if (toBoolean(INPUT_STATIC)) {
       core.info(`[DEBUG]: (uploadDockerfile) creating default nginx conf`);
       fs.writeFileSync(
-        `${GITHUB_WORKSPACE}/nginx.conf`,
+        `${GITHUB_WORKSPACE}/default.conf`,
         defaultStaticNginxConf,
       );
 
       await new Promise((resolve, reject) => {
         Deploy.ssh
-          .putFile(`${GITHUB_WORKSPACE}/nginx.conf`, `${remote}/nginx.conf`)
+          .putFile(`${GITHUB_WORKSPACE}/default.conf`, `${remote}/default.conf`)
           .then(
             () => {
               core.info(`[DEBUG]: (uploadDockerfile) nginx updated!`);
